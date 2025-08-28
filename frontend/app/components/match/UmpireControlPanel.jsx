@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { motion } from 'motion/react';
 
 const UmpireControlPanel = ({ match, onScoreUpdate }) => {
     const [batsmanId, setBatsmanId] = useState('');
@@ -16,25 +17,20 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
     const [battingTeam, setBattingTeam] = useState(null);
     const [bowlingTeam, setBowlingTeam] = useState(null);
 
-    // This effect correctly determines the current batting and bowling teams whenever the match data changes.
     useEffect(() => {
         if (!match) return;
 
         const currentInnings = match.innings.length > 0 ? match.innings[match.innings.length - 1] : null;
 
         if (currentInnings) {
-            // An innings is in progress. Identify teams from the latest innings record.
             const currentBattingTeam = match.homeTeam.id === currentInnings.battingTeamId ? match.homeTeam : match.awayTeam;
             const currentBowlingTeam = match.homeTeam.id === currentInnings.bowlingTeamId ? match.homeTeam : match.awayTeam;
             setBattingTeam(currentBattingTeam);
             setBowlingTeam(currentBowlingTeam);
         } else {
-            // Match has not started. Assume home team bats first.
-            // A more advanced implementation would use a toss winner decision.
             setBattingTeam(match.homeTeam);
             setBowlingTeam(match.awayTeam);
         }
-        // Reset selections when teams change (e.g., end of innings)
         setBatsmanId('');
         setBowlerId('');
 
@@ -53,7 +49,7 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
         const currentInnings = match.innings.length > 0 ? match.innings[match.innings.length - 1] : null;
 
         const scoreData = {
-            inningsId: currentInnings?.id, // Can be null for the first ball of the match
+            inningsId: currentInnings?.id,
             battingTeamId: battingTeam.id,
             bowlingTeamId: bowlingTeam.id,
             batsmanId,
@@ -67,13 +63,11 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
         try {
             const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/matches/${match.id}/score`, scoreData);
             onScoreUpdate(res.data.data);
-            // Reset form for the next ball, but keep players selected
             setIsWicket(false);
             setRunsScored('0');
             setExtraType('');
             setExtraRuns('0');
-        } catch (err)
- {
+        } catch (err) {
             setError(err.response?.data?.message || 'Failed to update score.');
         } finally {
             setLoading(false);
@@ -81,38 +75,53 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
     };
     
     if (!battingTeam || !bowlingTeam) {
-        return null; // Don't render the form until teams are determined
+        return null;
     }
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    };
+
+    const itemVariants = {
+        hidden: { y: 10, opacity: 0 },
+        visible: { y: 0, opacity: 1 }
+    };
+
     return (
-        <div className="card mt-8 border-t-4 border-primary animate-fade-in-up">
-            <h2 className="text-2xl font-bold mb-4 text-secondary">Score Update Panel</h2>
+        <motion.div 
+            className="card mt-8 border-t-4 border-emerald-500 bg-white rounded-xl shadow-lg p-8"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
+            <motion.h2 variants={itemVariants} className="text-2xl font-bold mb-6 text-gray-900">Score Update Panel</motion.h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-slate-700 mb-2 font-semibold">On Strike</label>
-                        <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field" required>
+                        <label className="block text-gray-800 mb-2 font-semibold">On Strike</label>
+                        <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Batsman</option>
                             {battingTeam.members.map(m => <option key={m.userId} value={m.userId}>{m.user.username}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-slate-700 mb-2 font-semibold">Bowler</label>
-                        <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field" required>
+                        <label className="block text-gray-800 mb-2 font-semibold">Bowler</label>
+                        <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Bowler</option>
                             {bowlingTeam.members.map(m => <option key={m.userId} value={m.userId}>{m.user.username}</option>)}
                         </select>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label className="block text-slate-700 mb-2 font-semibold">Runs</label>
-                        <input type="number" min="0" max="6" value={runsScored} onChange={(e) => setRunsScored(e.target.value)} className="input-field" />
+                        <label className="block text-gray-800 mb-2 font-semibold">Runs</label>
+                        <input type="number" min="0" max="6" value={runsScored} onChange={(e) => setRunsScored(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                     </div>
                     <div>
-                        <label className="block text-slate-700 mb-2 font-semibold">Extras Type</label>
-                        <select value={extraType} onChange={(e) => setExtraType(e.target.value)} className="input-field">
+                        <label className="block text-gray-800 mb-2 font-semibold">Extras Type</label>
+                        <select value={extraType} onChange={(e) => setExtraType(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">None</option>
                             <option value="wd">Wide</option>
                             <option value="nb">No Ball</option>
@@ -121,23 +130,29 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
                         </select>
                     </div>
                      <div>
-                        <label className="block text-slate-700 mb-2 font-semibold">Extra Runs</label>
-                        <input type="number" min="0" value={extraRuns} onChange={(e) => setExtraRuns(e.target.value)} className="input-field" />
+                        <label className="block text-gray-800 mb-2 font-semibold">Extra Runs</label>
+                        <input type="number" min="0" value={extraRuns} onChange={(e) => setExtraRuns(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                     </div>
                     <div className="flex items-center justify-center pb-2">
                         <label className="flex items-center space-x-3 cursor-pointer">
-                            <input type="checkbox" checked={isWicket} onChange={(e) => setIsWicket(e.target.checked)} className="h-5 w-5" />
+                            <input type="checkbox" checked={isWicket} onChange={(e) => setIsWicket(e.target.checked)} className="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
                             <span className="font-semibold text-red-600">Wicket?</span>
                         </label>
                     </div>
-                </div>
+                </motion.div>
 
-                <button type="submit" className="btn btn-primary w-full !mt-6 py-3 text-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-1" disabled={loading}>
+                <motion.button 
+                    variants={itemVariants}
+                    type="submit" 
+                    className="btn bg-emerald-500 text-white w-full !mt-6 py-3 text-lg font-bold transition-all duration-300 hover:bg-emerald-600 hover:shadow-lg hover:-translate-y-1" 
+                    disabled={loading}
+                    whileTap={{ scale: 0.98 }}
+                >
                     {loading ? 'Submitting...' : 'Submit Ball'}
-                </button>
+                </motion.button>
                 {error && <p className="text-red-500 text-center mt-2">{error}</p>}
             </form>
-        </div>
+        </motion.div>
     );
 };
 

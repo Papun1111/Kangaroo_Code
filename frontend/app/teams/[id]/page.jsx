@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import Spinner from '../../components/ui/Spinner';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function TeamDetailPage() {
     const { id: teamId } = useParams();
@@ -14,7 +15,6 @@ export default function TeamDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     
-    // State for adding players
     const [allUsers, setAllUsers] = useState([]);
     const [selectedPlayer, setSelectedPlayer] = useState('');
     const [addPlayerError, setAddPlayerError] = useState('');
@@ -56,7 +56,6 @@ export default function TeamDetailPage() {
         }
     }, [team, isCaptain, fetchAllUsers]);
 
-
     const handleAddPlayer = async (e) => {
         e.preventDefault();
         setAddPlayerError('');
@@ -66,7 +65,6 @@ export default function TeamDetailPage() {
         }
         try {
             await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/teams/${teamId}/players`, { userId: selectedPlayer });
-            // Refetch team data to show the new player
             fetchTeamData();
             setSelectedPlayer('');
         } catch (err) {
@@ -74,60 +72,80 @@ export default function TeamDetailPage() {
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
+    };
+
     if (loading) return <div className="flex justify-center mt-16"><Spinner /></div>;
     if (error) return <p className="text-center text-red-500 mt-8">{error}</p>;
     if (!team) return <p className="text-center mt-8">Team not found.</p>;
 
     return (
-        <div>
-            <h1 className="text-4xl font-bold text-secondary mb-4">{team.name}</h1>
+        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+            <motion.h1 variants={itemVariants} className="text-4xl font-bold text-gray-900 mb-6">{team.name}</motion.h1>
             
             <div className="grid md:grid-cols-3 gap-8">
-                <div className="md:col-span-2">
-                    <div className="card">
-                        <h2 className="text-2xl font-bold mb-4">Player Roster</h2>
+                <motion.div variants={itemVariants} className="md:col-span-2">
+                    <div className="card bg-white rounded-xl shadow-lg border border-slate-200 p-6">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">Player Roster</h2>
                         {team.members.length > 0 ? (
                             <ul className="space-y-3">
                                 {team.members.map(member => (
-                                    <li key={member.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-md">
-                                        <Link href={`/users/${member.userId}`} className="font-semibold text-primary hover:underline">
+                                    <motion.li 
+                                        key={member.id} 
+                                        className="flex justify-between items-center p-3 bg-slate-50 rounded-lg hover:bg-emerald-50 transition-colors"
+                                        whileHover={{ scale: 1.03 }}
+                                    >
+                                        <Link href={`/users/${member.userId}`} className="font-semibold text-emerald-600 hover:underline">
                                             {member.user.username}
                                         </Link>
                                         <span className={`px-2 py-1 text-xs font-bold rounded-full ${member.role === 'CAPTAIN' ? 'bg-amber-200 text-amber-800' : 'bg-slate-200 text-slate-700'}`}>
                                             {member.role}
                                         </span>
-                                    </li>
+                                    </motion.li>
                                 ))}
                             </ul>
                         ) : (
                            <p>This team has no players yet.</p>
                         )}
                     </div>
-                </div>
+                </motion.div>
                 
                 {isAuthenticated && isCaptain && (
-                    <div className="card h-fit">
-                        <h2 className="text-2xl font-bold mb-4">Manage Team</h2>
+                    <motion.div variants={itemVariants} className="card bg-white rounded-xl shadow-lg border border-slate-200 p-6 h-fit">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">Manage Team</h2>
                         <form onSubmit={handleAddPlayer}>
-                            <h3 className="font-semibold mb-2">Add New Player</h3>
+                            <h3 className="font-semibold mb-2 text-gray-800">Add New Player</h3>
                             {addPlayerError && <p className="text-sm text-red-500 mb-2">{addPlayerError}</p>}
                             <select 
                                 value={selectedPlayer}
                                 onChange={(e) => setSelectedPlayer(e.target.value)}
-                                className="input-field mb-4"
+                                className="input-field mb-4 transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             >
                                 <option value="">Select a player to invite</option>
                                 {allUsers
-                                    .filter(u => !team.members.some(m => m.userId === u.id)) // Filter out existing members
+                                    .filter(u => !team.members.some(m => m.userId === u.id))
                                     .map(u => (
                                     <option key={u.id} value={u.id}>{u.username}</option>
                                 ))}
                             </select>
-                            <button type="submit" className="btn btn-primary w-full">Add Player</button>
+                            <motion.button 
+                                type="submit" 
+                                className="btn bg-emerald-500 text-white w-full py-2"
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                Add Player
+                            </motion.button>
                         </form>
-                    </div>
+                    </motion.div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }

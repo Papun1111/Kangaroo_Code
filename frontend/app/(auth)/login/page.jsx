@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -12,6 +13,26 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const router = useRouter();
+
+    const containerVariants = {
+        hidden: { opacity: 0, scale: 0.95 },
+        visible: {
+          opacity: 1,
+          scale: 1,
+          transition: {
+            staggerChildren: 0.2,
+          },
+        },
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+          y: 0,
+          opacity: 1,
+          transition: { duration: 0.5, ease: "easeOut" },
+        },
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -29,54 +50,65 @@ export default function LoginPage() {
 
     return (
         <div className="flex justify-center items-center min-h-[calc(100vh-200px)] px-4">
-            {/* The card will fade in and slide up slightly */}
-            <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 border border-slate-200 animate-fade-in-up">
-                <h2 className="text-3xl font-bold text-center text-secondary mb-6">Welcome Back</h2>
+            <motion.div
+                className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 border border-slate-200"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center text-secondary mb-6">Welcome Back</motion.h2>
                 {error && (
-                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-4" role="alert">
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-4"
+                        role="alert"
+                    >
                         <p>{error}</p>
-                    </div>
+                    </motion.div>
                 )}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
+                    <motion.div variants={itemVariants}>
                         <label className="block text-slate-700 mb-2 font-semibold" htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
-                            className="input-field transition-all duration-300 focus:border-primary focus:ring-primary"
+                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
                             required
                         />
-                    </div>
-                    <div>
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
                         <label className="block text-slate-700 mb-2 font-semibold" htmlFor="password">Password</label>
                         <input
                             type="password"
                             id="password"
-                            className="input-field transition-all duration-300 focus:border-primary focus:ring-primary"
+                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"
                             required
                         />
-                    </div>
-                    <button 
+                    </motion.div>
+                    <motion.button 
+                        variants={itemVariants}
                         type="submit" 
-                        className="btn btn-primary w-full py-3 text-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-sm"
+                        className="btn bg-emerald-500 text-white w-full py-3 text-lg transition-all duration-300 hover:bg-emerald-600 hover:shadow-lg hover:-translate-y-1 active:translate-y-0 active:shadow-sm"
                         disabled={loading}
+                        whileTap={{ scale: 0.98 }}
                     >
                         {loading ? 'Logging in...' : 'Login'}
-                    </button>
+                    </motion.button>
                 </form>
-                <p className="text-center text-slate-600 mt-6">
+                <motion.p variants={itemVariants} className="text-center text-slate-600 mt-6">
                     Don't have an account?{' '}
-                    <Link href="/register" className="text-primary font-semibold hover:underline transition-colors">
+                    <Link href="/register" className="text-emerald-500 font-semibold hover:underline transition-colors">
                         Register here
                     </Link>
-                </p>
-            </div>
+                </motion.p>
+            </motion.div>
         </div>
     );
 }
