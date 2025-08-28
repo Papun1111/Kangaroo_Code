@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 const UmpireControlPanel = ({ match, onScoreUpdate }) => {
     const [batsmanId, setBatsmanId] = useState('');
@@ -95,43 +95,43 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
             initial="hidden"
             animate="visible"
         >
-            <motion.h2 variants={itemVariants} className="text-2xl font-bold mb-6 text-gray-900">Score Update Panel</motion.h2>
+            <motion.h2 variants={itemVariants} className="text-2xl font-bold mb-6 text-black">Score Update Panel</motion.h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-gray-800 mb-2 font-semibold">On Strike</label>
-                        <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
+                        <label className="block text-black mb-2 font-semibold">On Strike</label>
+                        <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Batsman</option>
-                            {battingTeam.members.map(m => <option key={m.userId} value={m.userId}>{m.user.username}</option>)}
+                            {battingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#181818]">{m.user.username}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-gray-800 mb-2 font-semibold">Bowler</label>
-                        <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
+                        <label className="block text-black mb-2 font-semibold">Bowler</label>
+                        <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Bowler</option>
-                            {bowlingTeam.members.map(m => <option key={m.userId} value={m.userId}>{m.user.username}</option>)}
+                            {bowlingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#181818]">{m.user.username}</option>)}
                         </select>
                     </div>
                 </motion.div>
 
                 <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label className="block text-gray-800 mb-2 font-semibold">Runs</label>
-                        <input type="number" min="0" max="6" value={runsScored} onChange={(e) => setRunsScored(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                        <label className="block text-black mb-2 font-semibold">Runs</label>
+                        <input type="number" min="0" max="6" value={runsScored} onChange={(e) => setRunsScored(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                     </div>
                     <div>
-                        <label className="block text-gray-800 mb-2 font-semibold">Extras Type</label>
-                        <select value={extraType} onChange={(e) => setExtraType(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        <label className="block text-black mb-2 font-semibold">Extras Type</label>
+                        <select value={extraType} onChange={(e) => setExtraType(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">None</option>
-                            <option value="wd">Wide</option>
-                            <option value="nb">No Ball</option>
-                            <option value="b">Bye</option>
-                            <option value="lb">Leg Bye</option>
+                            <option value="wd" className="text-[#181818]">Wide</option>
+                            <option value="nb" className="text-[#181818]">No Ball</option>
+                            <option value="b" className="text-[#181818]">Bye</option>
+                            <option value="lb" className="text-[#181818]">Leg Bye</option>
                         </select>
                     </div>
                      <div>
-                        <label className="block text-gray-800 mb-2 font-semibold">Extra Runs</label>
-                        <input type="number" min="0" value={extraRuns} onChange={(e) => setExtraRuns(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                        <label className="block text-black mb-2 font-semibold">Extra Runs</label>
+                        <input type="number" min="0" value={extraRuns} onChange={(e) => setExtraRuns(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                     </div>
                     <div className="flex items-center justify-center pb-2">
                         <label className="flex items-center space-x-3 cursor-pointer">

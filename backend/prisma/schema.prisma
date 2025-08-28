@@ -71,10 +71,10 @@ model Match {
   awayTeamId String
 
   tossWinnerId String?
-  decision     String? // "bat" or "field"
-
+  decision     String? 
+  umpireId String?
   innings Innings[]
-  rules   Json? // To store custom match rules
+  rules   Json? 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

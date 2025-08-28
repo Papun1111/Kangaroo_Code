@@ -1,23 +1,20 @@
 // src/server.js
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io');
 const cors = require('cors');
 require('dotenv').config();
+const { initSocket, getIO } = require('./socket'); // Import socket functions
 
-const authRoutes = require('./routes/authRoutes.js');
-const teamRoutes = require('./routes/teamRoutes.js');
-const matchRoutes = require('./routes/matchRoutes.js');
-const userRoutes = require('./routes/userRoutes.js');
+const authRoutes = require('./routes/authRoutes');
+const teamRoutes = require('./routes/teamRoutes');
+const matchRoutes = require('./routes/matchRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "https://kangaroo-code.vercel.app", // Your frontend URL
-    methods: ["GET", "POST"]
-  }
-});
+
+// Initialize Socket.io
+const io = initSocket(server);
 
 // Middleware
 app.use(cors());
@@ -29,7 +26,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/users', userRoutes);
 
-// Socket.io connection
+// Socket.io connection logic
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
@@ -38,24 +35,10 @@ io.on('connection', (socket) => {
     console.log(`User ${socket.id} joined match ${matchId}`);
   });
 
-  socket.on('updateScore', (data) => {
-    // Here you would typically validate the update and save to DB
-    // Then broadcast the new score to all clients in the match room
-    io.to(data.matchId).emit('scoreUpdated', data.scoreData);
-    console.log('Score updated for match:', data.matchId);
-  });
-  
-  socket.on('updateCommentary', (data) => {
-    io.to(data.matchId).emit('newCommentary', data.commentary);
-    console.log('New commentary for match:', data.matchId);
-  });
-
-
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
 });
-
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

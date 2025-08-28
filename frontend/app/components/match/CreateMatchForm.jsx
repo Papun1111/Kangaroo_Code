@@ -6,26 +6,34 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 
-const CreateMatchForm = ({ onTeamCreated }) => {
+const CreateMatchForm = () => {
     const [venue, setVenue] = useState('');
     const [matchDate, setMatchDate] = useState('');
     const [homeTeamId, setHomeTeamId] = useState('');
     const [awayTeamId, setAwayTeamId] = useState('');
+    const [umpireId, setUmpireId] = useState(''); // State for the selected umpire
     const [userTeams, setUserTeams] = useState([]);
     const [allTeams, setAllTeams] = useState([]);
+    const [allUsers, setAllUsers] = useState([]); // State to hold all users
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { user } = useAuth();
 
     useEffect(() => {
-        const fetchTeamsData = async () => {
+        const fetchInitialData = async () => {
             if (!user) return;
             try {
-                const allTeamsRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teams`);
-                setAllTeams(allTeamsRes.data);
+                // Fetch all teams, all users, and the current user's profile in parallel
+                const [teamsRes, usersRes, profileRes] = await Promise.all([
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teams`),
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`),
+                    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/${user.id}`)
+                ]);
+                
+                setAllTeams(teamsRes.data);
+                setAllUsers(usersRes.data);
 
-                const profileRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/${user.id}`);
                 const captainOfTeams = profileRes.data.teamMemberships
                     .filter(m => m.role === 'CAPTAIN')
                     .map(m => m.team);
@@ -36,10 +44,10 @@ const CreateMatchForm = ({ onTeamCreated }) => {
                 }
 
             } catch (err) {
-                setError('Could not load team data.');
+                setError('Could not load initial data for match creation.');
             }
         };
-        fetchTeamsData();
+        fetchInitialData();
     }, [user]);
 
     const handleSubmit = async (e) => {
@@ -53,7 +61,7 @@ const CreateMatchForm = ({ onTeamCreated }) => {
         try {
             const res = await axios.post(
                 `${process.env.NEXT_PUBLIC_API_URL}/matches`,
-                { venue, matchDate, homeTeamId, awayTeamId }
+                { venue, matchDate, homeTeamId, awayTeamId, umpireId: umpireId || null }
             );
             router.push(`/matches/${res.data.id}`);
         } catch (err) {
@@ -85,25 +93,32 @@ const CreateMatchForm = ({ onTeamCreated }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <motion.div variants={itemVariants}>
                     <label htmlFor="homeTeam" className="block text-black mb-2 font-semibold">Your Team (Home)</label>
-                    <select id="homeTeam" value={homeTeamId} onChange={(e) => setHomeTeamId(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
+                    <select id="homeTeam" value={homeTeamId} onChange={(e) => setHomeTeamId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">Select your team</option>
-                        {userTeams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                        {userTeams.map(team => <option key={team.id} value={team.id} className="text-[#111111]">{team.name}</option>)}
                     </select>
                 </motion.div>
                  <motion.div variants={itemVariants}>
                     <label htmlFor="awayTeam" className="block text-black mb-2 font-semibold">Opponent (Away)</label>
-                    <select id="awayTeam" value={awayTeamId} onChange={(e) => setAwayTeamId(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
+                    <select id="awayTeam" value={awayTeamId} onChange={(e) => setAwayTeamId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                         <option value="">Select opponent</option>
-                        {allTeams.filter(t => t.id !== homeTeamId).map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                        {allTeams.filter(t => t.id !== homeTeamId).map(team => <option key={team.id} value={team.id} className="text-[#111111]">{team.name}</option>)}
+                    </select>
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                    <label htmlFor="umpire" className="block text-black mb-2 font-semibold">Umpire (Optional)</label>
+                    <select id="umpire" value={umpireId} onChange={(e) => setUmpireId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        <option value="">Select an Umpire</option>
+                        {allUsers.map(u => <option key={u.id} value={u.id} className="text-[#111111]">{u.username}</option>)}
                     </select>
                 </motion.div>
                 <motion.div variants={itemVariants}>
                     <label htmlFor="venue" className="block text-black mb-2 font-semibold">Venue</label>
-                    <input type="text" id="venue" value={venue} onChange={(e) => setVenue(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required />
+                    <input type="text" id="venue" value={venue} onChange={(e) => setVenue(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required />
                 </motion.div>
                 <motion.div variants={itemVariants}>
                     <label htmlFor="matchDate" className="block text-black mb-2 font-semibold">Date and Time</label>
-                    <input type="datetime-local" id="matchDate" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                    <input type="datetime-local" id="matchDate" value={matchDate} onChange={(e) => setMatchDate(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                 </motion.div>
                 <motion.button 
                     variants={itemVariants}
