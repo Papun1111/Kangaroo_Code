@@ -61,7 +61,7 @@ export default function RegisterPage() {
                 initial="hidden"
                 animate="visible"
             >
-                <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center text-secondary mb-6">Create Your Account</motion.h2>
+                <motion.h2 variants={itemVariants} className="text-[#273F4F] text-3xl font-bold text-center text-secondary mb-6">Create Your Account</motion.h2>
                 {error && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -78,7 +78,7 @@ export default function RegisterPage() {
                         <input
                             type="text"
                             id="username"
-                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                            className="text-[#1A1A19] input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             placeholder="Your Name"
@@ -90,7 +90,7 @@ export default function RegisterPage() {
                         <input
                             type="email"
                             id="email"
-                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                            className="text-[#1A1A19] input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
@@ -102,7 +102,7 @@ export default function RegisterPage() {
                         <input
                             type="password"
                             id="password"
-                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                            className="text-[#1A1A19] input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"

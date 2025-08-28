@@ -45,7 +45,7 @@ export default function MatchesPage() {
                 variants={itemVariants}
                 className="mb-8"
             >
-                <h1 className="text-4xl font-bold text-black">Matches</h1>
+                <h1 className="text-4xl font-bold text-[#FAF7F3]">Matches</h1>
                 <p className="text-slate-500 mt-1">View upcoming, live, and completed matches.</p>
             </motion.div>
             
@@ -78,7 +78,7 @@ export default function MatchesPage() {
                         </motion.div>
                     ))
                 ) : (
-                    <motion.p variants={itemVariants} className="text-center text-slate-500 mt-8">No matches scheduled.</motion.p>
+                    <motion.p variants={itemVariants} className="text-center text-[#FAF6E9] mt-8">No matches scheduled.</motion.p>
                 )}
             </motion.div>
         </motion.div>

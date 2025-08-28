@@ -44,7 +44,7 @@ export default function HomePage() {
       </motion.h1>
 
       <motion.p
-        className="text-base sm:text-lg text-slate-600 mb-8 max-w-2xl"
+        className="text-base sm:text-lg text-[#FAF6E9] mb-8 max-w-2xl"
         variants={itemVariants}
       >
         Host matches, track live scores, and dive deep into player analytics. Your all-in-one solution for managing and following the game you love.

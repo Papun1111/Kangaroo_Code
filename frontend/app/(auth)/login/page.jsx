@@ -56,7 +56,7 @@ export default function LoginPage() {
                 initial="hidden"
                 animate="visible"
             >
-                <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center text-secondary mb-6">Welcome Back</motion.h2>
+                <motion.h2 variants={itemVariants} className="text-[#273F4F] text-3xl font-bold text-center text-secondary mb-6">Welcome Back</motion.h2>
                 {error && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -73,7 +73,7 @@ export default function LoginPage() {
                         <input
                             type="email"
                             id="email"
-                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                            className="text-[#273F4F] input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
@@ -81,14 +81,14 @@ export default function LoginPage() {
                         />
                     </motion.div>
                     <motion.div variants={itemVariants}>
-                        <label className="block text-slate-700 mb-2 font-semibold" htmlFor="password">Password</label>
+                        <label className="block text-[#273F4F] mb-2 font-semibold" htmlFor="password">Password</label>
                         <input
                             type="password"
                             id="password"
                             className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
+                            placeholder="Enter your password"
                             required
                         />
                     </motion.div>

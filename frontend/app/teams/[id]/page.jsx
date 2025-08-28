@@ -88,7 +88,7 @@ export default function TeamDetailPage() {
 
     return (
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
-            <motion.h1 variants={itemVariants} className="text-4xl font-bold text-gray-900 mb-6">{team.name}</motion.h1>
+            <motion.h1 variants={itemVariants} className="text-4xl font-bold text-[#E4EFE7] mb-6">{team.name}</motion.h1>
             
             <div className="grid md:grid-cols-3 gap-8">
                 <motion.div variants={itemVariants} className="md:col-span-2">
@@ -126,7 +126,7 @@ export default function TeamDetailPage() {
                             <select 
                                 value={selectedPlayer}
                                 onChange={(e) => setSelectedPlayer(e.target.value)}
-                                className="input-field mb-4 transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                                className="text-[#273F4F] input-field mb-4 transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             >
                                 <option value="">Select a player to invite</option>
                                 {allUsers
