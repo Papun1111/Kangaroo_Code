@@ -11,29 +11,23 @@ const CreateMatchForm = () => {
     const [matchDate, setMatchDate] = useState('');
     const [homeTeamId, setHomeTeamId] = useState('');
     const [awayTeamId, setAwayTeamId] = useState('');
-    const [umpireId, setUmpireId] = useState(''); // State for the selected umpire
+    const [overs, setOvers] = useState('20'); // State for overs
+    const [wickets, setWickets] = useState('10'); // State for wickets
     const [userTeams, setUserTeams] = useState([]);
     const [allTeams, setAllTeams] = useState([]);
-    const [allUsers, setAllUsers] = useState([]); // State to hold all users
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { user } = useAuth();
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const fetchTeamsData = async () => {
             if (!user) return;
             try {
-                // Fetch all teams, all users, and the current user's profile in parallel
-                const [teamsRes, usersRes, profileRes] = await Promise.all([
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teams`),
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`),
-                    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/${user.id}`)
-                ]);
-                
-                setAllTeams(teamsRes.data);
-                setAllUsers(usersRes.data);
+                const allTeamsRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teams`);
+                setAllTeams(allTeamsRes.data);
 
+                const profileRes = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/${user.id}`);
                 const captainOfTeams = profileRes.data.teamMemberships
                     .filter(m => m.role === 'CAPTAIN')
                     .map(m => m.team);
@@ -44,10 +38,10 @@ const CreateMatchForm = () => {
                 }
 
             } catch (err) {
-                setError('Could not load initial data for match creation.');
+                setError('Could not load team data.');
             }
         };
-        fetchInitialData();
+        fetchTeamsData();
     }, [user]);
 
     const handleSubmit = async (e) => {
@@ -59,9 +53,20 @@ const CreateMatchForm = () => {
         }
         setLoading(true);
         try {
+            // Construct the match data with a 'rules' object
+            const matchData = {
+                venue,
+                matchDate,
+                homeTeamId,
+                awayTeamId,
+                rules: {
+                    overs: parseInt(overs, 10),
+                    wickets: parseInt(wickets, 10)
+                }
+            };
             const res = await axios.post(
                 `${process.env.NEXT_PUBLIC_API_URL}/matches`,
-                { venue, matchDate, homeTeamId, awayTeamId, umpireId: umpireId || null }
+                matchData
             );
             router.push(`/matches/${res.data.id}`);
         } catch (err) {
@@ -105,12 +110,15 @@ const CreateMatchForm = () => {
                         {allTeams.filter(t => t.id !== homeTeamId).map(team => <option key={team.id} value={team.id} className="text-[#111111]">{team.name}</option>)}
                     </select>
                 </motion.div>
-                <motion.div variants={itemVariants}>
-                    <label htmlFor="umpire" className="block text-black mb-2 font-semibold">Umpire (Optional)</label>
-                    <select id="umpire" value={umpireId} onChange={(e) => setUmpireId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
-                        <option value="">Select an Umpire</option>
-                        {allUsers.map(u => <option key={u.id} value={u.id} className="text-[#111111]">{u.username}</option>)}
-                    </select>
+                <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="overs" className="block text-black mb-2 font-semibold">Overs per Innings</label>
+                        <input type="number" id="overs" value={overs} onChange={(e) => setOvers(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                    </div>
+                    <div>
+                        <label htmlFor="wickets" className="block text-black mb-2 font-semibold">Wickets per Team</label>
+                        <input type="number" id="wickets" value={wickets} onChange={(e) => setWickets(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                    </div>
                 </motion.div>
                 <motion.div variants={itemVariants}>
                     <label htmlFor="venue" className="block text-black mb-2 font-semibold">Venue</label>

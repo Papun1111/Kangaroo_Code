@@ -146,7 +146,9 @@ enum TeamRole {
 
 enum MatchStatus {
   UPCOMING
+  TOSS          // Add this
   ONGOING
+  INNINGS_BREAK // Add this
   COMPLETED
   ABANDONED
 }
