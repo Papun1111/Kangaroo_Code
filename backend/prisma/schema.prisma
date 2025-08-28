@@ -1,0 +1,152 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  role      Role     @default(PLAYER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teamMemberships TeamMembership[]
+  profile         PlayerProfile?
+}
+
+model PlayerProfile {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  battingAverage Float @default(0)
+  strikeRate     Float @default(0)
+  wicketsTaken   Int   @default(0)
+  economyRate    Float @default(0)
+  matchesPlayed  Int   @default(0)
+
+  stats PlayerStat[]
+}
+
+model Team {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members       TeamMembership[]
+  matchesAsHome Match[]          @relation("HomeMatches")
+  matchesAsAway Match[]          @relation("AwayMatches")
+}
+
+model TeamMembership {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  team   Team   @relation(fields: [teamId], references: [id])
+  teamId String
+  role   TeamRole @default(PLAYER)
+
+  @@unique([userId, teamId])
+}
+
+model Match {
+  id        String      @id @default(uuid())
+  status    MatchStatus @default(UPCOMING)
+  venue     String
+  matchDate DateTime
+
+  homeTeam   Team @relation("HomeMatches", fields: [homeTeamId], references: [id])
+  homeTeamId String
+  awayTeam   Team @relation("AwayMatches", fields: [awayTeamId], references: [id])
+  awayTeamId String
+
+  tossWinnerId String?
+  decision     String? // "bat" or "field"
+
+  innings Innings[]
+  rules   Json? // To store custom match rules
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Innings {
+  id      String @id @default(uuid())
+  match   Match  @relation(fields: [matchId], references: [id])
+  matchId String
+
+  battingTeamId String
+  bowlingTeamId String
+  score         Int    @default(0)
+  wickets       Int    @default(0)
+  overs         Float  @default(0.0)
+
+  oversData Over[]
+
+  @@unique([matchId, battingTeamId])
+}
+
+model Over {
+  id        String  @id @default(uuid())
+  innings   Innings @relation(fields: [inningsId], references: [id])
+  inningsId String
+  overNumber Int
+  bowlerId   String
+
+  balls Ball[]
+}
+
+model Ball {
+  id            String @id @default(uuid())
+  over          Over   @relation(fields: [overId], references: [id])
+  overId        String
+  ballNumber    Int
+  batsmanId     String
+  runsScored    Int
+  isWicket      Boolean @default(false)
+  wicketType    String?
+  wicketTakerId String?
+  extraType     String? // "wd", "nb", "lb", "b"
+  extraRuns     Int     @default(0)
+}
+
+model PlayerStat {
+  id        String @id @default(uuid())
+  profile   PlayerProfile @relation(fields: [profileId], references: [id])
+  profileId String
+  matchId   String
+  runs      Int
+  ballsFaced Int
+  wickets   Int
+  oversBowled Float
+  runsConceded Int
+}
+
+enum Role {
+  PLAYER
+  CAPTAIN
+  UMPIRE
+  ADMIN
+}
+
+enum TeamRole {
+  PLAYER
+  CAPTAIN
+}
+
+enum MatchStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  ABANDONED
+}
