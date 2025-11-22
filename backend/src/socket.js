@@ -6,7 +6,7 @@ let io;
 function initSocket(server) {
     io = new Server(server, {
         cors: {
-            origin: "https://kangaroo-code.vercel.app", // Your frontend URL
+            origin: "http://localhost:3000", // Your frontend URL
             methods: ["GET", "POST"]
         }
     });

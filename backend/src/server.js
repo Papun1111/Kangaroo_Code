@@ -3,7 +3,7 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 require('dotenv').config();
-const { initSocket, getIO } = require('./socket'); // Import socket functions
+const { initSocket } = require('./socket'); // Import socket functions
 
 const authRoutes = require('./routes/authRoutes');
 const teamRoutes = require('./routes/teamRoutes');

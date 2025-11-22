@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
@@ -17,6 +17,9 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
     const [battingTeam, setBattingTeam] = useState(null);
     const [bowlingTeam, setBowlingTeam] = useState(null);
 
+    // Track previous overs to detect when an over finishes
+    const prevOversRef = useRef(0);
+
     useEffect(() => {
         if (!match) return;
 
@@ -27,15 +30,25 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
             const currentBowlingTeam = match.homeTeam.id === currentInnings.bowlingTeamId ? match.homeTeam : match.awayTeam;
             setBattingTeam(currentBattingTeam);
             setBowlingTeam(currentBowlingTeam);
+
+            // LOGIC: If the over count has changed and is now a whole number (e.g., 1.0, 2.0), it means an over just ended.
+            // We force reset the bowler selection so you can't accidentally continue with the same one.
+            const currentOvers = currentInnings.overs || 0;
+            const isOverComplete = currentOvers % 1 === 0 && currentOvers > 0;
+            
+            if (isOverComplete && currentOvers !== prevOversRef.current) {
+                setBowlerId(''); // FORCE RESET BOWLER
+            }
+            prevOversRef.current = currentOvers;
+
         } else {
             setBattingTeam(match.homeTeam);
             setBowlingTeam(match.awayTeam);
+            setBatsmanId('');
+            setBowlerId('');
         }
-        setBatsmanId('');
-        setBowlerId('');
 
     }, [match]);
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -63,10 +76,15 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
         try {
             const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/matches/${match.id}/score`, scoreData);
             onScoreUpdate(res.data.data);
+            
+            // Reset ball-specific fields
             setIsWicket(false);
             setRunsScored('0');
             setExtraType('');
             setExtraRuns('0');
+            
+            // Note: We do NOT reset batsmanId/bowlerId here.
+            // The useEffect above handles resetting the bowler ONLY when the over is actually complete.
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to update score.');
         } finally {
@@ -95,43 +113,43 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
             initial="hidden"
             animate="visible"
         >
-            <motion.h2 variants={itemVariants} className="text-2xl font-bold mb-6 text-black">Score Update Panel</motion.h2>
+            <motion.h2 variants={itemVariants} className="text-2xl font-bold mb-6 text-[#111111]">Score Update Panel</motion.h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-black mb-2 font-semibold">On Strike</label>
-                        <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
+                        <label className="block text-[#111111] mb-2 font-semibold">On Strike</label>
+                        <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Batsman</option>
-                            {battingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#181818]">{m.user.username}</option>)}
+                            {battingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#111111]">{m.user.username}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-black mb-2 font-semibold">Bowler</label>
-                        <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
+                        <label className="block text-[#111111] mb-2 font-semibold">Bowler</label>
+                        <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Bowler</option>
-                            {bowlingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#181818]">{m.user.username}</option>)}
+                            {bowlingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#111111]">{m.user.username}</option>)}
                         </select>
                     </div>
                 </motion.div>
 
                 <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                     <div>
-                        <label className="block text-black mb-2 font-semibold">Runs</label>
-                        <input type="number" min="0" max="6" value={runsScored} onChange={(e) => setRunsScored(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                        <label className="block text-[#111111] mb-2 font-semibold">Runs</label>
+                        <input type="number" min="0" max="6" value={runsScored} onChange={(e) => setRunsScored(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                     </div>
                     <div>
-                        <label className="block text-black mb-2 font-semibold">Extras Type</label>
-                        <select value={extraType} onChange={(e) => setExtraType(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
+                        <label className="block text-[#111111] mb-2 font-semibold">Extras Type</label>
+                        <select value={extraType} onChange={(e) => setExtraType(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">None</option>
-                            <option value="wd" className="text-[#181818]">Wide</option>
-                            <option value="nb" className="text-[#181818]">No Ball</option>
-                            <option value="b" className="text-[#181818]">Bye</option>
-                            <option value="lb" className="text-[#181818]">Leg Bye</option>
+                            <option value="wd" className="text-[#111111]">Wide</option>
+                            <option value="nb" className="text-[#111111]">No Ball</option>
+                            <option value="b" className="text-[#111111]">Bye</option>
+                            <option value="lb" className="text-[#111111]">Leg Bye</option>
                         </select>
                     </div>
                      <div>
-                        <label className="block text-black mb-2 font-semibold">Extra Runs</label>
-                        <input type="number" min="0" value={extraRuns} onChange={(e) => setExtraRuns(e.target.value)} className="input-field text-[#181818] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
+                        <label className="block text-[#111111] mb-2 font-semibold">Extra Runs</label>
+                        <input type="number" min="0" value={extraRuns} onChange={(e) => setExtraRuns(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" />
                     </div>
                     <div className="flex items-center justify-center pb-2">
                         <label className="flex items-center space-x-3 cursor-pointer">
