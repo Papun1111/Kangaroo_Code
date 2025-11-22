@@ -53,7 +53,7 @@ export default function TeamsPage() {
             >
                 <div>
                     <h1 className="text-4xl font-bold text-secondary">All Teams</h1>
-                    <p className="text-slate-500 mt-1">Browse teams or create your own to start competing.</p>
+                    <p className="text-slate-200 mt-1">Browse teams or create your own to start competing.</p>
                 </div>
                 {isAuthenticated && (
                     <button 
