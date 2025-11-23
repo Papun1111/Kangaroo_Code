@@ -17,8 +17,8 @@ const TeamCard = ({ team }) => {
     };
 
     return (
-        <Link href={`/teams/${team.id}`} legacyBehavior>
-            <motion.a
+        <Link href={`/teams/${team.id}`}>
+            <motion.div
                 className="block card bg-white rounded-xl shadow-md border border-slate-200 hover:shadow-xl hover:border-emerald-400 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden"
                 variants={cardVariants}
                 initial="hidden"
@@ -30,7 +30,7 @@ const TeamCard = ({ team }) => {
                     <p className="text-slate-500 mt-2">{team._count.members} Members</p>
                 </div>
                 <div className="bg-emerald-500 h-1 w-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-            </motion.a>
+            </motion.div>
         </Link>
     );
 };

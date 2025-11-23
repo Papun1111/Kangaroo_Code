@@ -1,12 +1,30 @@
 "use client";
 
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 const LiveScorecard = ({ match }) => {
     const getPlayerUsername = (playerId) => {
         const allMembers = [...match.homeTeam.members, ...match.awayTeam.members];
         const member = allMembers.find(m => m.user.id === playerId);
         return member ? member.user.username : 'Unknown Player';
+    };
+
+    // Helper to calculate total overs dynamically from ball data
+    const calculateTotalOvers = (innings) => {
+        if (!innings || !innings.oversData) return "0.0";
+        let legalBalls = 0;
+        
+        innings.oversData.forEach(over => {
+            over.balls.forEach(ball => {
+                if (ball.extraType !== 'wd' && ball.extraType !== 'nb') {
+                    legalBalls++;
+                }
+            });
+        });
+
+        const overs = Math.floor(legalBalls / 6);
+        const balls = legalBalls % 6;
+        return `${overs}.${balls}`;
     };
 
     const calculateInningsStats = (innings) => {
@@ -56,94 +74,143 @@ const LiveScorecard = ({ match }) => {
     };
 
     const renderInnings = (innings, inningsNumber) => {
+        const cardVariants = {
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+        };
+
+        const tableVariants = {
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+        };
+
+        const rowVariants = {
+            hidden: { opacity: 0, x: -10 },
+            visible: { opacity: 1, x: 0 }
+        };
+
         if (!innings) {
             return (
                 <motion.div 
-                    className="card bg-white rounded-xl shadow-lg p-6 border border-slate-200"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center"
+                    variants={cardVariants}
+                    initial="hidden"
+                    animate="visible"
                 >
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Innings {inningsNumber}</h2>
-                    <p className="text-slate-500">Yet to bat.</p>
+                    <h2 className="text-xl font-bold text-slate-400 uppercase tracking-wide mb-2">Innings {inningsNumber}</h2>
+                    <p className="text-slate-500 text-lg">Yet to bat</p>
                 </motion.div>
             );
         }
         
         const battingTeamName = match.homeTeam.id === innings.battingTeamId ? match.homeTeam.name : match.awayTeam.name;
         const { batting, bowling } = calculateInningsStats(innings);
+        const currentOvers = calculateTotalOvers(innings);
 
         return (
             <motion.div 
-                className="card bg-white rounded-xl shadow-lg p-6 border border-slate-200"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: inningsNumber * 0.1 }}
+                className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
             >
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-                    <h2 className="text-3xl font-bold text-gray-900">{battingTeamName}</h2>
-                    <p className="text-4xl font-bold text-emerald-500">
-                        {innings.score}-{innings.wickets}
-                        <span className="text-2xl text-slate-500 ml-2">({Math.floor(innings.overs)}.{(innings.overs * 10 % 10).toFixed(0)})</span>
-                    </p>
-                </div>
-
-                <div className="space-y-6">
-                    <div>
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 border-b pb-2">Batting</h3>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                               <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="p-3 font-semibold text-gray-700">Batsman</th>
-                                        <th className="p-3 font-semibold text-gray-700">Runs</th>
-                                        <th className="p-3 font-semibold text-gray-700">Balls</th>
-                                        <th className="p-3 font-semibold text-gray-700">SR</th>
-                                    </tr>
-                               </thead>
-                               <tbody>
-                                    {batting.map(b => (
-                                        <tr key={b.playerId} className="hover:bg-emerald-50 transition-colors border-b last:border-b-0 border-slate-100">
-                                            <td className="p-3 font-semibold text-gray-800">{getPlayerUsername(b.playerId)} {!b.isOut && <span className="text-emerald-500">*</span>}</td>
-                                            <td className="p-3 text-gray-700">{b.runs}</td>
-                                            <td className="p-3 text-gray-700">{b.balls}</td>
-                                            <td className="p-3 text-gray-700">{b.balls > 0 ? ((b.runs / b.balls) * 100).toFixed(2) : '0.00'}</td>
-                                        </tr>
-                                    ))}
-                               </tbody>
-                            </table>
+                {/* Header Section */}
+                <div className="bg-slate-50/50 p-6 sm:p-8 border-b border-slate-100">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                        <div>
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Innings {inningsNumber}</span>
+                            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">{battingTeamName}</h2>
+                        </div>
+                        <div className="flex flex-col items-end">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-5xl font-black text-emerald-600">{innings.score}</span>
+                                <span className="text-3xl font-bold text-slate-400">/{innings.wickets}</span>
+                            </div>
+                            <div className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm mt-2">
+                                Overs: <span className="text-slate-900 font-bold">{currentOvers}</span>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <h3 className="font-bold text-xl mb-3 text-gray-800 border-b pb-2">Bowling</h3>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                               <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="p-3 font-semibold text-gray-700">Bowler</th>
-                                        <th className="p-3 font-semibold text-gray-700">Overs</th>
-                                        <th className="p-3 font-semibold text-gray-700">Runs</th>
-                                        <th className="p-3 font-semibold text-gray-700">Wickets</th>
-                                        <th className="p-3 font-semibold text-gray-700">Econ</th>
-                                    </tr>
-                               </thead>
-                               <tbody>
-                                    {bowling.map(b => {
-                                        const overs = `${Math.floor(b.balls / 6)}.${b.balls % 6}`;
-                                        const economy = b.balls > 0 ? (b.runs / (b.balls / 6)).toFixed(2) : '0.00';
-                                        return (
-                                            <tr key={b.playerId} className="hover:bg-emerald-50 transition-colors border-b last:border-b-0 border-slate-100">
-                                                <td className="p-3 font-semibold text-gray-800">{getPlayerUsername(b.playerId)}</td>
-                                                <td className="p-3 text-gray-700">{overs}</td>
-                                                <td className="p-3 text-gray-700">{b.runs}</td>
-                                                <td className="p-3 text-gray-700">{b.wickets}</td>
-                                                <td className="p-3 text-gray-700">{economy}</td>
-                                            </tr>
-                                        );
-                                    })}
-                               </tbody>
-                            </table>
-                        </div>
+                </div>
+
+                {/* Batting Table */}
+                <div className="p-6 sm:p-8">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
+                        <span className="w-1 h-4 bg-emerald-500 rounded-full mr-2"></span>
+                        Batting Scorecard
+                    </h3>
+                    <div className="overflow-x-auto rounded-xl border border-slate-100">
+                        <motion.table 
+                            className="w-full text-left"
+                            variants={tableVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold tracking-wide">
+                                <tr>
+                                    <th className="p-4">Batsman</th>
+                                    <th className="p-4 text-right">Runs</th>
+                                    <th className="p-4 text-right">Balls</th>
+                                    <th className="p-4 text-right">SR</th>
+                                </tr>
+                           </thead>
+                           <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                                {batting.map(b => (
+                                    <motion.tr key={b.playerId} variants={rowVariants} className="hover:bg-slate-50/80 transition-colors">
+                                        <td className="p-4 font-bold text-slate-900">
+                                            {getPlayerUsername(b.playerId)} 
+                                            {!b.isOut && <span className="ml-2 text-emerald-500 text-xs align-top">●</span>}
+                                        </td>
+                                        <td className="p-4 text-right font-mono font-bold text-slate-900">{b.runs}</td>
+                                        <td className="p-4 text-right font-mono text-slate-500">{b.balls}</td>
+                                        <td className="p-4 text-right font-mono text-slate-500">
+                                            {b.balls > 0 ? ((b.runs / b.balls) * 100).toFixed(1) : '0.0'}
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                           </tbody>
+                        </motion.table>
+                    </div>
+                </div>
+
+                {/* Bowling Table */}
+                <div className="px-6 sm:px-8 pb-8">
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
+                        <span className="w-1 h-4 bg-blue-500 rounded-full mr-2"></span>
+                        Bowling Figures
+                    </h3>
+                    <div className="overflow-x-auto rounded-xl border border-slate-100">
+                        <motion.table 
+                            className="w-full text-left"
+                            variants={tableVariants}
+                            initial="hidden"
+                            animate="visible"
+                        >
+                           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold tracking-wide">
+                                <tr>
+                                    <th className="p-4">Bowler</th>
+                                    <th className="p-4 text-right">Overs</th>
+                                    <th className="p-4 text-right">Runs</th>
+                                    <th className="p-4 text-right">Wkts</th>
+                                    <th className="p-4 text-right">Econ</th>
+                                </tr>
+                           </thead>
+                           <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                                {bowling.map(b => {
+                                    const overs = `${Math.floor(b.balls / 6)}.${b.balls % 6}`;
+                                    const economy = b.balls > 0 ? (b.runs / (b.balls / 6)).toFixed(2) : '0.00';
+                                    return (
+                                        <motion.tr key={b.playerId} variants={rowVariants} className="hover:bg-slate-50/80 transition-colors">
+                                            <td className="p-4 font-medium text-slate-900">{getPlayerUsername(b.playerId)}</td>
+                                            <td className="p-4 text-right font-mono text-slate-600">{overs}</td>
+                                            <td className="p-4 text-right font-mono text-slate-600">{b.runs}</td>
+                                            <td className="p-4 text-right font-mono font-bold text-emerald-600">{b.wickets}</td>
+                                            <td className="p-4 text-right font-mono text-slate-500">{economy}</td>
+                                        </motion.tr>
+                                    );
+                                })}
+                           </tbody>
+                        </motion.table>
                     </div>
                 </div>
             </motion.div>
@@ -151,7 +218,7 @@ const LiveScorecard = ({ match }) => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10">
             {renderInnings(match.innings[0], 1)}
             {match.status !== 'UPCOMING' && renderInnings(match.innings[1], 2)}
         </div>

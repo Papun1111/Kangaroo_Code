@@ -27,14 +27,14 @@ export default function LoadingScreen({ onComplete }) {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900"
         initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.5 }}
       >
         {/* Animated Background Orbs */}
         <motion.div
-          className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-emerald-500/20 via-emerald-600/10 to-transparent rounded-full blur-3xl"
+          className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-radial from-blue-500/20 via-blue-600/10 to-transparent rounded-full blur-3xl"
           animate={{
             scale: [1, 1.3, 1],
             opacity: [0.4, 0.7, 0.4],
@@ -46,7 +46,7 @@ export default function LoadingScreen({ onComplete }) {
           }}
         />
         <motion.div
-          className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-radial from-yellow-500/15 via-amber-600/10 to-transparent rounded-full blur-3xl"
+          className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-radial from-orange-500/15 via-orange-600/10 to-transparent rounded-full blur-3xl"
           animate={{
             scale: [1.3, 1, 1.3],
             opacity: [0.6, 0.3, 0.6],
@@ -61,7 +61,7 @@ export default function LoadingScreen({ onComplete }) {
         {/* Subtle Grid Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
-            backgroundImage: `radial-gradient(circle, rgba(16, 185, 129, 0.4) 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle, rgba(59, 130, 246, 0.4) 1px, transparent 1px)`,
             backgroundSize: '40px 40px'
           }} />
         </div>
@@ -131,7 +131,7 @@ export default function LoadingScreen({ onComplete }) {
             <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
               {/* Cricket Pitch Line */}
               <motion.div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-0.5 bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-72 h-0.5 bg-gradient-to-r from-transparent via-blue-400/60 to-transparent"
                 animate={{ 
                   opacity: [0.4, 0.8, 0.4],
                   scaleX: [0.95, 1, 0.95],
@@ -161,20 +161,26 @@ export default function LoadingScreen({ onComplete }) {
                   {/* Face */}
                   <div className="w-8 h-8 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full mx-auto relative z-10" />
                   
-                  {/* Australian Helmet - Green & Gold */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-yellow-500 to-green-600 rounded-full opacity-90">
+                  {/* Indian Helmet - Blue */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-full opacity-95">
                     {/* Helmet Grill */}
                     <div className="absolute inset-x-2 bottom-2 space-y-0.5">
-                      <div className="h-0.5 bg-slate-800/40 rounded" />
-                      <div className="h-0.5 bg-slate-800/40 rounded" />
-                      <div className="h-0.5 bg-slate-800/40 rounded" />
+                      <div className="h-0.5 bg-slate-300/50 rounded" />
+                      <div className="h-0.5 bg-slate-300/50 rounded" />
+                      <div className="h-0.5 bg-slate-300/50 rounded" />
                     </div>
                     {/* Helmet Shine */}
-                    <div className="absolute top-1 right-2 w-3 h-3 bg-white/50 rounded-full blur-sm" />
+                    <div className="absolute top-1 right-2 w-3 h-3 bg-white/60 rounded-full blur-sm" />
+                    {/* India Flag Emblem */}
+                    <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+                      <div className="w-2 h-0.5 bg-orange-500" />
+                      <div className="w-2 h-0.5 bg-white" />
+                      <div className="w-2 h-0.5 bg-green-600" />
+                    </div>
                   </div>
                 </motion.div>
 
-                {/* Australian Jersey - Green & Gold with Star */}
+                {/* Indian Jersey - Blue with #7 */}
                 <motion.div
                   className="w-14 h-20 mx-auto relative rounded-lg overflow-hidden"
                   animate={stage === 'stance' ? {
@@ -191,35 +197,55 @@ export default function LoadingScreen({ onComplete }) {
                     repeat: Infinity,
                   }}
                 >
-                  {/* Jersey Main Color - Australian Green */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-500 via-green-600 to-green-700" />
+                  {/* Jersey Main Color - Indian Blue */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800" />
                   
-                  {/* Gold Stripes */}
-                  <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-yellow-400 to-yellow-500" />
-                  <div className="absolute inset-x-0 bottom-6 h-1 bg-yellow-400/60" />
+                  {/* Tricolor Stripes */}
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 to-orange-600" />
+                  <div className="absolute inset-x-0 top-1 h-0.5 bg-white" />
+                  <div className="absolute inset-x-0 top-1.5 h-1 bg-gradient-to-r from-green-600 to-green-700" />
                   
-                  {/* Australian Star */}
+                  {/* Dhoni's Number 7 */}
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <div className="text-yellow-300 text-2xl">★</div>
+                    <motion.div 
+                      className="text-white text-3xl font-bold"
+                      style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+                      animate={{
+                        scale: stage === 'hit' ? [1, 1.2, 1] : 1,
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      7
+                    </motion.div>
                   </div>
                   
+                  {/* BCCI Logo Area */}
+                  <div className="absolute top-2 right-2 w-4 h-4 bg-blue-900/40 rounded-full border border-white/30" />
+                  
                   {/* Jersey Collar */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-3 bg-yellow-400 rounded-b-lg" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-3 bg-blue-700 rounded-b-lg border-b-2 border-orange-500" />
                   
                   {/* Arms */}
-                  <div className="absolute -left-2 top-2 w-4 h-12 bg-gradient-to-b from-green-600 to-green-700 rounded-lg shadow-lg" />
-                  <div className="absolute -right-2 top-2 w-4 h-12 bg-gradient-to-b from-green-600 to-green-700 rounded-lg shadow-lg" />
+                  <div className="absolute -left-2 top-2 w-4 h-12 bg-gradient-to-b from-blue-600 to-blue-800 rounded-lg shadow-lg" />
+                  <div className="absolute -right-2 top-2 w-4 h-12 bg-gradient-to-b from-blue-600 to-blue-800 rounded-lg shadow-lg" />
                   
                   {/* Jersey Shadow/Depth */}
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20" />
+                  
+                  {/* Subtle Pattern */}
+                  <div className="absolute inset-0 opacity-10" style={{
+                    backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)'
+                  }} />
                 </motion.div>
 
-                {/* Cricket Pads - White with Green Stripes */}
-                <div className="absolute -left-2 top-16 w-5 h-16 bg-gradient-to-b from-white to-gray-100 rounded-lg shadow-lg border-2 border-green-500/30">
-                  <div className="absolute inset-x-0 top-1/3 h-1 bg-green-500/40" />
+                {/* Cricket Pads - White with Blue Stripes */}
+                <div className="absolute -left-2 top-16 w-5 h-16 bg-gradient-to-b from-white to-gray-100 rounded-lg shadow-lg border-2 border-blue-500/30">
+                  <div className="absolute inset-x-0 top-1/3 h-1 bg-blue-500/40" />
+                  <div className="absolute inset-x-0 top-2/3 h-0.5 bg-blue-400/30" />
                 </div>
-                <div className="absolute -right-2 top-16 w-5 h-16 bg-gradient-to-b from-white to-gray-100 rounded-lg shadow-lg border-2 border-green-500/30">
-                  <div className="absolute inset-x-0 top-1/3 h-1 bg-green-500/40" />
+                <div className="absolute -right-2 top-16 w-5 h-16 bg-gradient-to-b from-white to-gray-100 rounded-lg shadow-lg border-2 border-blue-500/30">
+                  <div className="absolute inset-x-0 top-1/3 h-1 bg-blue-500/40" />
+                  <div className="absolute inset-x-0 top-2/3 h-0.5 bg-blue-400/30" />
                 </div>
 
                 {/* Cricket Bat */}
@@ -270,7 +296,7 @@ export default function LoadingScreen({ onComplete }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.6 }}
                       >
-                        <div className="w-16 h-16 border-4 border-emerald-400 rounded-full" />
+                        <div className="w-16 h-16 border-4 border-blue-400 rounded-full" />
                       </motion.div>
                       <motion.div
                         className="absolute -right-8 top-20"
@@ -279,7 +305,18 @@ export default function LoadingScreen({ onComplete }) {
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.4 }}
                       >
-                        <div className="w-16 h-16 bg-yellow-400/50 rounded-full blur-lg" />
+                        <div className="w-16 h-16 bg-orange-400/50 rounded-full blur-lg" />
+                      </motion.div>
+                      {/* Six Text */}
+                      <motion.div
+                        className="absolute -right-8 top-16 text-5xl font-black text-orange-500"
+                        initial={{ scale: 0, opacity: 0, y: 0 }}
+                        animate={{ scale: [0, 1.5, 1.2], opacity: [0, 1, 0], y: [0, -20, -40] }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.8 }}
+                        style={{ textShadow: '0 0 20px rgba(249, 115, 22, 0.8), 0 0 40px rgba(249, 115, 22, 0.4)' }}
+                      >
+                        6
                       </motion.div>
                     </>
                   )}
@@ -302,14 +339,14 @@ export default function LoadingScreen({ onComplete }) {
               }}
               transition={{ duration: 3, repeat: Infinity }}
               style={{
-                backgroundImage: 'linear-gradient(90deg, #10b981, #fbbf24, #10b981)',
+                backgroundImage: 'linear-gradient(90deg, #3b82f6, #f97316, #3b82f6)',
                 backgroundSize: '200% 200%',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
               }}
             >
-              {stage === 'stance' ? 'Taking Stance...' : 'Game On!'}
+              {stage === 'stance' ? 'Captain Taking Stance...' : 'Dhoni Finishes it in Style!'}
             </motion.h2>
 
             {/* Loading Dots */}
@@ -319,7 +356,7 @@ export default function LoadingScreen({ onComplete }) {
                   key={i}
                   className="w-3 h-3 rounded-full"
                   style={{
-                    background: 'linear-gradient(135deg, #10b981, #fbbf24)',
+                    background: 'linear-gradient(135deg, #3b82f6, #f97316)',
                   }}
                   animate={{
                     scale: [1, 1.4, 1],
@@ -337,7 +374,7 @@ export default function LoadingScreen({ onComplete }) {
 
           {/* Progress Bar */}
           <motion.div
-            className="mt-10 w-80 h-1.5 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm border border-emerald-500/20"
+            className="mt-10 w-80 h-1.5 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm border border-blue-500/20"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
@@ -345,7 +382,7 @@ export default function LoadingScreen({ onComplete }) {
             <motion.div
               className="h-full rounded-full"
               style={{
-                background: 'linear-gradient(90deg, #10b981, #fbbf24, #10b981)',
+                background: 'linear-gradient(90deg, #3b82f6, #f97316, #3b82f6)',
                 backgroundSize: '200% 100%',
               }}
               initial={{ width: '0%' }}
