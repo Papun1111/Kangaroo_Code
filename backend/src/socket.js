@@ -1,12 +1,13 @@
 // src/socket.js
 const { Server } = require('socket.io');
-
+const dotenv=require("dotenv");
+dotenv.config();
 let io;
 
 function initSocket(server) {
     io = new Server(server, {
         cors: {
-            origin: "https://kangaroo-code.vercel.app", // Your frontend URL
+            origin: process.env.FRONTEND_URL, // Your frontend URL
             methods: ["GET", "POST"]
         }
     });

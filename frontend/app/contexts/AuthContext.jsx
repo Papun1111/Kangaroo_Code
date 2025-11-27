@@ -33,22 +33,29 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = async (email, password) => {
-        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, { email, password });
-        const { token } = res.data;
+    // Helper to handle authentication response (used by login, register, and googleLogin)
+    const handleAuthResponse = (data) => {
+        const { token } = data;
         localStorage.setItem('token', token);
         const decodedUser = jwtDecode(token);
         setUser(decodedUser);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     };
 
+    const login = async (email, password) => {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, { email, password });
+        handleAuthResponse(res.data);
+    };
+
     const register = async (username, email, password) => {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, { username, email, password });
-        const { token } = res.data;
-        localStorage.setItem('token', token);
-        const decodedUser = jwtDecode(token);
-        setUser(decodedUser);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        handleAuthResponse(res.data);
+    };
+
+    // NEW: Handle Google Login
+    const googleLogin = async (credential) => {
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/google`, { credential });
+        handleAuthResponse(res.data);
     };
 
     const logout = () => {
@@ -63,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
+        googleLogin, // Export this function so it can be used in the Login page
         logout,
     };
 

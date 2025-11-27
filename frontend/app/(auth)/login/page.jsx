@@ -5,13 +5,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { GoogleLogin } from '@react-oauth/google'; // Import
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth(); // Destructure googleLogin
     const router = useRouter();
 
     const containerVariants = {
@@ -19,19 +20,13 @@ export default function LoginPage() {
         visible: {
           opacity: 1,
           scale: 1,
-          transition: {
-            staggerChildren: 0.2,
-          },
+          transition: { staggerChildren: 0.2 },
         },
     };
 
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
-        visible: {
-          y: 0,
-          opacity: 1,
-          transition: { duration: 0.5, ease: "easeOut" },
-        },
+        visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
     };
 
     const handleSubmit = async (e) => {
@@ -42,7 +37,20 @@ export default function LoginPage() {
             await login(email, password);
             router.push('/dashboard');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+            setError(err.response?.data?.message || 'Failed to login.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Handle Google Success
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setLoading(true);
+            await googleLogin(credentialResponse.credential);
+            router.push('/dashboard');
+        } catch (err) {
+            setError('Google login failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -56,7 +64,26 @@ export default function LoginPage() {
                 initial="hidden"
                 animate="visible"
             >
-                <motion.h2 variants={itemVariants} className="text-[#273F4F] text-3xl font-bold text-center text-secondary mb-6">Welcome Back</motion.h2>
+                <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center text-gray-800 mb-6">Welcome Back</motion.h2>
+                
+                {/* Google Button Section */}
+                <motion.div variants={itemVariants} className="flex justify-center mb-6">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError('Google Login Failed')}
+                        theme="filled_blue"
+                        shape="pill"
+                        size="large"
+                        width="100%"
+                    />
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="relative flex py-2 items-center mb-4">
+                    <div className="flex-grow border-t border-gray-300"></div>
+                    <span className="flex-shrink mx-4 text-gray-400 text-sm">OR</span>
+                    <div className="flex-grow border-t border-gray-300"></div>
+                </motion.div>
+
                 {error && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -67,13 +94,15 @@ export default function LoginPage() {
                         <p>{error}</p>
                     </motion.div>
                 )}
+                
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* ... existing email/password inputs ... */}
                     <motion.div variants={itemVariants}>
                         <label className="block text-slate-700 mb-2 font-semibold" htmlFor="email">Email</label>
                         <input
                             type="email"
                             id="email"
-                            className="text-[#273F4F] input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                            className="input-field transition-all duration-300 text-black focus:border-emerald-500 focus:ring-emerald-500"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="you@example.com"
@@ -81,14 +110,14 @@ export default function LoginPage() {
                         />
                     </motion.div>
                     <motion.div variants={itemVariants}>
-                        <label className="block text-[#273F4F] mb-2 font-semibold" htmlFor="password">Password</label>
+                        <label className="block text-slate-700 mb-2 font-semibold" htmlFor="password">Password</label>
                         <input
                             type="password"
                             id="password"
-                            className="input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
+                            className="text-black input-field transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
+                            placeholder="••••••••"
                             required
                         />
                     </motion.div>
@@ -99,7 +128,7 @@ export default function LoginPage() {
                         disabled={loading}
                         whileTap={{ scale: 0.98 }}
                     >
-                        {loading ? 'Logging in...' : 'Login'}
+                        {loading ? 'Logging in...' : 'Login with Email'}
                     </motion.button>
                 </form>
                 <motion.p variants={itemVariants} className="text-center text-slate-600 mt-6">

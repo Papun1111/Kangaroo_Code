@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/layout/Navbar";
 import { SocketProvider } from "./contexts/SocketContext";
-
+import GoogleWrapper from "./components/auth/GoogleWrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -16,20 +16,22 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://fonts.gstatic.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Iceberg&family=Odibee+Sans&family=Syne+Mono&display=swap" rel="stylesheet"/>
       </head>
       <body className={inter.className}>
-        <AuthProvider>
-          <SocketProvider>
-            <div className="min-h-screen bg-[#3c3c3c]">
-              <Navbar />
-              <main className="container mx-auto px-4 py-8">
-                {children}
-              </main>
-            </div>
-          </SocketProvider>
-        </AuthProvider>
+       <GoogleWrapper> 
+          <AuthProvider>
+            <SocketProvider>
+              <div className="min-h-screen bg-[#3c3c3c]">
+                <Navbar />
+                <main className="container mx-auto px-4 py-8">
+                  {children}
+                </main>
+              </div>
+            </SocketProvider>
+          </AuthProvider>
+        </GoogleWrapper>
       </body>
     </html>
   );
