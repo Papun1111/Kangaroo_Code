@@ -17,38 +17,74 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
     const [battingTeam, setBattingTeam] = useState(null);
     const [bowlingTeam, setBowlingTeam] = useState(null);
 
-    // Track previous overs to detect when an over finishes
+    // Track previous innings ID to reset selections when innings changes
+    const prevInningsIdRef = useRef(null);
+    // Track previous overs to detect end of over
     const prevOversRef = useRef(0);
 
     useEffect(() => {
         if (!match) return;
 
-        const currentInnings = match.innings.length > 0 ? match.innings[match.innings.length - 1] : null;
+        // 1. SAFELY DETERMINE CURRENT INNINGS
+        let currentInnings = null;
+        if (match.innings && match.innings.length > 0) {
+            const sortedInnings = [...match.innings].sort((a, b) => 
+                (a.id > b.id) ? 1 : -1
+            );
+            currentInnings = sortedInnings[sortedInnings.length - 1];
+        }
 
+        // 2. DETERMINE TEAMS BASED ON CURRENT INNINGS
         if (currentInnings) {
-            const currentBattingTeam = match.homeTeam.id === currentInnings.battingTeamId ? match.homeTeam : match.awayTeam;
-            const currentBowlingTeam = match.homeTeam.id === currentInnings.bowlingTeamId ? match.homeTeam : match.awayTeam;
-            setBattingTeam(currentBattingTeam);
-            setBowlingTeam(currentBowlingTeam);
+            const batTeam = [match.homeTeam, match.awayTeam].find(t => t.id === currentInnings.battingTeamId);
+            const bowlTeam = [match.homeTeam, match.awayTeam].find(t => t.id === currentInnings.bowlingTeamId);
+            
+            setBattingTeam(batTeam);
+            setBowlingTeam(bowlTeam);
 
-            // LOGIC: If the over count has changed and is now a whole number (e.g., 1.0, 2.0), it means an over just ended.
-            // We force reset the bowler selection so you can't accidentally continue with the same one.
+            if (currentInnings.id !== prevInningsIdRef.current) {
+                setBatsmanId('');
+                setBowlerId('');
+                prevInningsIdRef.current = currentInnings.id;
+            }
+
             const currentOvers = currentInnings.overs || 0;
             const isOverComplete = currentOvers % 1 === 0 && currentOvers > 0;
             
             if (isOverComplete && currentOvers !== prevOversRef.current) {
-                setBowlerId(''); // FORCE RESET BOWLER
+                setBowlerId(''); 
             }
             prevOversRef.current = currentOvers;
 
         } else {
             setBattingTeam(match.homeTeam);
             setBowlingTeam(match.awayTeam);
-            setBatsmanId('');
-            setBowlerId('');
         }
 
     }, [match]);
+
+    // Helper to identify players who are already out
+    const getDismissedPlayerIds = () => {
+        const dismissedIds = new Set();
+        if (!match || !match.innings || match.innings.length === 0) return dismissedIds;
+
+        // Get the current innings data
+        const sortedInnings = [...match.innings].sort((a, b) => (a.id > b.id) ? 1 : -1);
+        const currentInnings = sortedInnings[sortedInnings.length - 1];
+
+        if (currentInnings && currentInnings.oversData) {
+            currentInnings.oversData.forEach(over => {
+                over.balls.forEach(ball => {
+                    if (ball.isWicket) {
+                        dismissedIds.add(ball.batsmanId);
+                    }
+                });
+            });
+        }
+        return dismissedIds;
+    };
+
+    const dismissedPlayerIds = getDismissedPlayerIds();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -59,10 +95,14 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
         setError('');
         setLoading(true);
 
-        const currentInnings = match.innings.length > 0 ? match.innings[match.innings.length - 1] : null;
+        let currentInningsId = null;
+        if (match.innings && match.innings.length > 0) {
+             const sortedInnings = [...match.innings].sort((a, b) => (a.id > b.id) ? 1 : -1);
+             currentInningsId = sortedInnings[sortedInnings.length - 1].id;
+        }
 
         const scoreData = {
-            inningsId: currentInnings?.id,
+            inningsId: currentInningsId,
             battingTeamId: battingTeam.id,
             bowlingTeamId: bowlingTeam.id,
             batsmanId,
@@ -77,14 +117,15 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
             const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/matches/${match.id}/score`, scoreData);
             onScoreUpdate(res.data.data);
             
-            // Reset ball-specific fields
+            // If the current batsman got out, clear the selection
+            if (isWicket) {
+                setBatsmanId('');
+            }
+
             setIsWicket(false);
             setRunsScored('0');
             setExtraType('');
             setExtraRuns('0');
-            
-            // Note: We do NOT reset batsmanId/bowlerId here.
-            // The useEffect above handles resetting the bowler ONLY when the over is actually complete.
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to update score.');
         } finally {
@@ -117,14 +158,25 @@ const UmpireControlPanel = ({ match, onScoreUpdate }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-[#111111] mb-2 font-semibold">On Strike</label>
+                        <label className="block text-[#111111] mb-2 font-semibold">
+                            On Strike ({battingTeam.name})
+                        </label>
                         <select value={batsmanId} onChange={(e) => setBatsmanId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Batsman</option>
-                            {battingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#111111]">{m.user.username}</option>)}
+                            {battingTeam.members
+                                .filter(m => !dismissedPlayerIds.has(m.userId)) // Filter out dismissed players
+                                .map(m => (
+                                    <option key={m.userId} value={m.userId} className="text-[#111111]">
+                                        {m.user.username}
+                                    </option>
+                                ))
+                            }
                         </select>
                     </div>
                     <div>
-                        <label className="block text-[#111111] mb-2 font-semibold">Bowler</label>
+                        <label className="block text-[#111111] mb-2 font-semibold">
+                            Bowler ({bowlingTeam.name})
+                        </label>
                         <select value={bowlerId} onChange={(e) => setBowlerId(e.target.value)} className="input-field text-[#111111] transition-all duration-300 focus:border-emerald-500 focus:ring-emerald-500" required>
                             <option value="">Select Bowler</option>
                             {bowlingTeam.members.map(m => <option key={m.userId} value={m.userId} className="text-[#111111]">{m.user.username}</option>)}

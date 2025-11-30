@@ -199,8 +199,8 @@ export default function DashboardPage() {
                     <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-3">
                         {profile.teamMemberships.length > 0 ? (
                             profile.teamMemberships.map(membership => (
-                                <Link key={membership.team.id} href={`/teams/${membership.team.id}`} legacyBehavior>
-                                    <motion.a 
+                                <Link key={membership.team.id} href={`/teams/${membership.team.id}`} >
+                                    <motion.div
                                         className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer group hover:bg-emerald-50 hover:border-emerald-200 transition-all duration-300"
                                         whileHover={{ scale: 1.02, x: 5 }}
                                     >
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                                                 CPT
                                             </span>
                                         )}
-                                    </motion.a>
+                                    </motion.div>
                                 </Link>
                             ))
                         ) : (
@@ -231,14 +231,14 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    <Link href="/teams" legacyBehavior>
-                        <motion.a 
+                    <Link href="/teams" >
+                        <motion.div
                             className="mt-6 w-full block text-center py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-600 font-bold hover:border-emerald-500 hover:text-emerald-600 transition-all duration-300"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >
                             Browse All Teams
-                        </motion.a>
+                        </motion.div>
                     </Link>
                 </motion.div>
             </div>
