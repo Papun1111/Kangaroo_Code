@@ -9,13 +9,20 @@ const createMatch = async (req, res) => {
   try {
     const isCaptain = await prisma.teamMembership.findFirst({ where: { userId: req.user.id, teamId: homeTeamId, role: 'CAPTAIN' } });
     if(!isCaptain) { return res.status(403).json({ message: 'Only the home team captain can create a match.' }); }
+    
+    // Ensure rules have defaults if not provided
+    const matchRules = {
+        overs: parseInt(rules?.overs) || 20,
+        wickets: parseInt(rules?.wickets) || 10
+    };
+
     const match = await prisma.match.create({ 
       data: { 
         venue, 
         matchDate: new Date(matchDate || Date.now()), 
         homeTeamId, 
         awayTeamId, 
-        rules: rules || { overs: 20, wickets: 10 }, 
+        rules: matchRules, 
         umpireId: umpireId || null,
         status: 'TOSS'
       } 
@@ -41,49 +48,32 @@ const getMatchById = async (req, res) => {
 
 const updateToss = async (req, res) => {
     const { matchId } = req.params;
-    const { tossWinnerId, decision } = req.body; // decision MUST be 'bat' or 'field'
-
+    const { tossWinnerId, decision } = req.body;
     try {
         const match = await prisma.match.findUnique({ where: { id: matchId } });
         if (!match) return res.status(404).json({ message: 'Match not found' });
 
-        // LOGIC: Determine who bats and bowls based on the toss winner's decision
         let battingTeamId, bowlingTeamId;
-        
-        // Identify the team that LOST the toss
         const tossLoserId = tossWinnerId === match.homeTeamId ? match.awayTeamId : match.homeTeamId;
 
         if (decision === 'bat') {
-            // Winner chose to bat -> Winner is batting, Loser is bowling
             battingTeamId = tossWinnerId;
             bowlingTeamId = tossLoserId;
         } else {
-            // Winner chose to field -> Loser is batting, Winner is bowling
             battingTeamId = tossLoserId;
             bowlingTeamId = tossWinnerId;
         }
 
         await prisma.$transaction([
-            // 1. Update Match Status and Toss Info
             prisma.match.update({
                 where: { id: matchId },
-                data: { 
-                    tossWinnerId, 
-                    decision, 
-                    status: 'ONGOING' 
-                }
+                data: { tossWinnerId, decision, status: 'ONGOING' }
             }),
-            // 2. Create the First Innings with the correct teams
             prisma.innings.create({
-                data: { 
-                    matchId, 
-                    battingTeamId, 
-                    bowlingTeamId 
-                }
+                data: { matchId, battingTeamId, bowlingTeamId }
             })
         ]);
         
-        // Return full match data so frontend updates immediately
         const updatedMatchState = await prisma.match.findUnique({ 
             where: { id: matchId }, 
             include: { 
@@ -131,12 +121,13 @@ const updatePlayerStats = async (prisma, matchId, batsmanId, bowlerId, runsScore
     const wicketTaken = isWicket && (['run_out', 'hit_wicket', 'retired_hurt'].indexOf(extraType) === -1) ? 1 : 0; 
     
     // Calculate this bowler's total balls in this match to derive overs
-    const ballsBowledByBowler = await prisma.ball.count({
+    const ballsByBowlerRaw = await prisma.ball.findMany({
         where: {
-            over: { innings: { matchId: matchId }, bowlerId: bowlerId },
-            extraType: { notIn: ['wd', 'nb'] }
-        }
+            over: { innings: { matchId: matchId }, bowlerId: bowlerId }
+        },
+        select: { extraType: true }
     });
+    const ballsBowledByBowler = ballsByBowlerRaw.filter(b => !['wd', 'nb'].includes(b.extraType)).length;
     
     const completedOvers = Math.floor(ballsBowledByBowler / 6);
     const ballsInOver = ballsBowledByBowler % 6;
@@ -157,61 +148,68 @@ const updateScore = async (req, res) => {
     const { inningsId, battingTeamId, bowlingTeamId, batsmanId, bowlerId, runsScored, isWicket, extraType, extraRuns } = req.body;
 
     try {
-        await prisma.$transaction(async (prisma) => {
-            // 1. Find or Create Innings
+        const result = await prisma.$transaction(async (prisma) => {
+            // 1. Get Match Info & Rules
+            const matchData = await prisma.match.findUnique({ where: { id: matchId }, include: { innings: true } });
+            const rules = matchData.rules || {};
+            const MAX_OVERS = parseInt(rules.overs) || 20;
+            const MAX_WICKETS = parseInt(rules.wickets) || 10;
+            const MAX_LEGAL_BALLS = MAX_OVERS * 6;
+
             let innings;
+            let wasNewInningsCreated = false;
+
             if (inningsId) { innings = await prisma.innings.findUnique({ where: { id: inningsId } }); }
             if (!innings) { innings = await prisma.innings.findFirst({ where: { matchId, battingTeamId } }); }
-            if (!innings) { innings = await prisma.innings.create({ data: { matchId, battingTeamId, bowlingTeamId } }); }
+            if (!innings) { 
+                innings = await prisma.innings.create({ data: { matchId, battingTeamId, bowlingTeamId } });
+                wasNewInningsCreated = true;
+            }
 
-            // 2. Determine Current State via Last Ball
-            // We find the very last ball recorded to know exactly where we left off.
-            const lastBall = await prisma.ball.findFirst({
+            // Accurate Innings Count Logic
+            const inningsCount = matchData.innings.length + (wasNewInningsCreated ? 1 : 0);
+
+            // 2. PRE-CHECK: Is Innings limit ALREADY reached?
+            const allBallsInInnings = await prisma.ball.findMany({
                 where: { over: { inningsId: innings.id } },
-                orderBy: [ { over: { overNumber: 'desc' } }, { ballNumber: 'desc' } ],
-                include: { over: true }
+                select: { extraType: true }
             });
+            const currentLegalBalls = allBallsInInnings.filter(b => !['wd', 'nb'].includes(b.extraType)).length;
 
-            let lastOver = lastBall?.over;
+            if (currentLegalBalls >= MAX_LEGAL_BALLS || innings.wickets >= MAX_WICKETS) {
+                const nextStatus = inningsCount === 1 ? 'INNINGS_BREAK' : 'COMPLETED';
+                await prisma.match.update({ where: { id: matchId }, data: { status: nextStatus } });
+                return { status: 'LIMIT_REACHED' }; 
+            }
+
+            // 3. Proceed to add ball
+            const lastOver = await prisma.over.findFirst({ 
+                where: { inningsId: innings.id }, 
+                orderBy: { createdAt: 'desc' } 
+            });
+            
             let currentOverNumber = lastOver ? lastOver.overNumber : 1;
-
-            // 3. Calculate Legal Balls in this specific Over Number (across all segments)
-            // This handles the case where Over 1 was split between Bowler A and Bowler B
-            const ballsInCurrentOverNum = await prisma.ball.count({
-                where: { 
-                    over: { 
-                        inningsId: innings.id, 
-                        overNumber: currentOverNumber 
-                    },
-                    extraType: { notIn: ['wd', 'nb'] } 
-                }
+            
+            const ballsInCurrentOverRaw = await prisma.ball.findMany({
+                where: { over: { inningsId: innings.id, overNumber: currentOverNumber } },
+                select: { extraType: true }
             });
+            const ballsInCurrentOverNum = ballsInCurrentOverRaw.filter(b => !['wd', 'nb'].includes(b.extraType)).length;
 
             let currentOverId = lastOver?.id;
 
-            // 4. Logic to Create or Split Over
             if (!lastOver || ballsInCurrentOverNum >= 6) {
-                // Case A: Start a brand new over number
+                // Start New Over Number
                 if (lastOver) currentOverNumber++;
-                const newOver = await prisma.over.create({ 
-                    data: { inningsId: innings.id, overNumber: currentOverNumber, bowlerId } 
-                });
+                const newOver = await prisma.over.create({ data: { inningsId: innings.id, overNumber: currentOverNumber, bowlerId } });
                 currentOverId = newOver.id;
             } else if (lastOver && lastOver.bowlerId !== bowlerId) {
-                // Case B: Same over number, but DIFFERENT bowler.
-                // Create a new "Over Segment" instead of overwriting the old one.
-                // This preserves the previous bowler's stats.
-                const newOver = await prisma.over.create({ 
-                    data: { inningsId: innings.id, overNumber: currentOverNumber, bowlerId } 
-                });
+                // Split Over (New Segment, same number)
+                const newOver = await prisma.over.create({ data: { inningsId: innings.id, overNumber: currentOverNumber, bowlerId } });
                 currentOverId = newOver.id;
-            } 
-            // Case C: Same over number, same bowler -> continue using currentOverId
+            }
 
-            // 5. Create Ball
-            // We count balls in this specific segment to determine ball number
             const ballsInThisSegment = await prisma.ball.count({ where: { overId: currentOverId } });
-            
             await prisma.ball.create({ 
                 data: { 
                     overId: currentOverId, 
@@ -224,41 +222,56 @@ const updateScore = async (req, res) => {
                 } 
             });
 
-            // 6. Update Innings Totals
+            // 5. Update Innings Score
             const totalRunsThisBall = runsScored + (extraRuns || 0);
             const wicketsThisBall = isWicket ? 1 : 0;
             
-            const totalLegalBallsInInnings = await prisma.ball.count({ where: { over: { inningsId: innings.id }, extraType: { notIn: ['wd', 'nb'] } } });
-            const totalOvers = Math.floor(totalLegalBallsInInnings / 6);
-            const totalBalls = totalLegalBallsInInnings % 6;
-            const oversFloat = parseFloat(`${totalOvers}.${totalBalls}`);
+            const isLegal = !['wd', 'nb'].includes(extraType);
+            const newTotalLegalBalls = currentLegalBalls + (isLegal ? 1 : 0);
+            
+            const completedOvers = Math.floor(newTotalLegalBalls / 6);
+            const ballsInCurrentOver = newTotalLegalBalls % 6;
+            const oversFloat = parseFloat(`${completedOvers}.${ballsInCurrentOver}`);
 
             const updatedInnings = await prisma.innings.update({ 
                 where: { id: innings.id }, 
                 data: { score: { increment: totalRunsThisBall }, wickets: { increment: wicketsThisBall }, overs: oversFloat } 
             });
             
-            // 7. Update Persistent Player Stats
             await updatePlayerStats(prisma, matchId, batsmanId, bowlerId, runsScored, !!isWicket, extraType, extraRuns);
 
-            // 8. Check Match Status
-            const match = await prisma.match.findUnique({ where: { id: matchId }, include: { innings: true } });
-            const matchRules = match.rules || { overs: 20, wickets: 10 };
-            const inningsCount = match.innings.length;
+            // 6. POST-CHECK: Did THIS ball finish the innings?
+            const isAllOut = (updatedInnings.wickets >= MAX_WICKETS);
+            const isOversDone = (newTotalLegalBalls >= MAX_LEGAL_BALLS);
 
-            if (inningsCount === 1 && (updatedInnings.wickets >= matchRules.wickets || updatedInnings.overs >= matchRules.overs)) {
-                await prisma.match.update({ where: { id: matchId }, data: { status: 'INNINGS_BREAK' } });
-            } else if (inningsCount === 2) {
-                const firstInningsScore = match.innings[0].score;
-                if (updatedInnings.score > firstInningsScore || updatedInnings.wickets >= matchRules.wickets || updatedInnings.overs >= matchRules.overs) {
+            if (isAllOut || isOversDone) {
+                if (inningsCount === 1) {
+                    await prisma.match.update({ where: { id: matchId }, data: { status: 'INNINGS_BREAK' } });
+                } else {
                     await prisma.match.update({ where: { id: matchId }, data: { status: 'COMPLETED' } });
+                }
+            } else if (inningsCount === 2) {
+                const firstInningsScore = matchData.innings[0].score;
+                if (updatedInnings.score > firstInningsScore) {
+                    await prisma.match.update({ where: { id: matchId }, data: { status: 'COMPLETED' } });
+                } else {
+                    await prisma.match.update({ where: { id: matchId }, data: { status: 'ONGOING' } });
                 }
             } else {
                  await prisma.match.update({ where: { id: matchId }, data: { status: 'ONGOING' } });
             }
+
+            return { status: 'SUCCESS' };
+
         }, { timeout: 20000 });
 
-        // 9. Broadcast Update
+        // Check transaction result
+        if (result.status === 'LIMIT_REACHED') {
+            const updatedMatchState = await prisma.match.findUnique({ where: { id: matchId }, include: { homeTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, awayTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, innings: { orderBy: { id: 'asc' }, include: { oversData: { orderBy: { overNumber: 'asc' }, include: { balls: { orderBy: { ballNumber: 'asc' } } } }, }, }, }, });
+            getIO().to(matchId).emit('scoreUpdated', updatedMatchState);
+            return res.status(200).json({ message: 'Innings limit reached. Status updated.', data: updatedMatchState });
+        }
+
         const updatedMatchState = await prisma.match.findUnique({
             where: { id: matchId },
             include: {
@@ -274,7 +287,7 @@ const updateScore = async (req, res) => {
 
     } catch (error) {
         console.error('Update Score Error:', error);
-        res.status(500).json({ message: 'Server failed to update score.' });
+        res.status(500).json({ message: error.message || 'Server failed to update score.' });
     }
 };
 
@@ -287,7 +300,24 @@ const startNextInnings = async (req, res) => {
         await prisma.innings.create({ data: { matchId, battingTeamId: firstInnings.bowlingTeamId, bowlingTeamId: firstInnings.battingTeamId } });
         await prisma.match.update({ where: { id: matchId }, data: { status: 'ONGOING' } });
         
-        const updatedMatchState = await prisma.match.findUnique({ where: { id: matchId }, include: { homeTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, awayTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, innings: true } });
+        // FIX: Include the full nested structure for innings -> overs -> balls
+        // This ensures the scorecard on the frontend receives the complete data for the first innings.
+        const updatedMatchState = await prisma.match.findUnique({ 
+            where: { id: matchId }, 
+            include: { 
+                homeTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, 
+                awayTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, 
+                innings: { 
+                    orderBy: { id: 'asc' }, 
+                    include: { 
+                        oversData: { 
+                            orderBy: { overNumber: 'asc' }, 
+                            include: { balls: { orderBy: { ballNumber: 'asc' } } } 
+                        } 
+                    } 
+                }, 
+            } 
+        });
         getIO().to(matchId).emit('scoreUpdated', updatedMatchState);
         res.status(200).json(updatedMatchState);
     } catch (error) { console.error('Start Next Innings Error:', error); res.status(500).json({ message: 'Server failed to start next innings.' }); }

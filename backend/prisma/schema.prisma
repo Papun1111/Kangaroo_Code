@@ -1,5 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -72,18 +70,18 @@ model Match {
 
   tossWinnerId String?
   decision     String? 
-  umpireId String?
-  innings Innings[]
-  rules   Json? 
+  umpireId     String?
+  innings      Innings[]
+  rules        Json? 
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Innings {
-  id      String @id @default(uuid())
-  match   Match  @relation(fields: [matchId], references: [id])
-  matchId String
+  id            String @id @default(uuid())
+  match         Match  @relation(fields: [matchId], references: [id])
+  matchId       String
 
   battingTeamId String
   bowlingTeamId String
@@ -91,44 +89,50 @@ model Innings {
   wickets       Int    @default(0)
   overs         Float  @default(0.0)
 
-  oversData Over[]
+  oversData     Over[]
 
   @@unique([matchId, battingTeamId])
 }
 
 model Over {
-  id        String  @id @default(uuid())
-  innings   Innings @relation(fields: [inningsId], references: [id])
-  inningsId String
+  id         String   @id @default(uuid())
+  innings    Innings  @relation(fields: [inningsId], references: [id])
+  inningsId  String
   overNumber Int
   bowlerId   String
 
-  balls Ball[]
+  balls      Ball[]
+  
+  // Added timestamp to track order of split overs
+  createdAt  DateTime @default(now()) 
 }
 
 model Ball {
-  id            String @id @default(uuid())
-  over          Over   @relation(fields: [overId], references: [id])
+  id            String   @id @default(uuid())
+  over          Over     @relation(fields: [overId], references: [id])
   overId        String
   ballNumber    Int
   batsmanId     String
   runsScored    Int
-  isWicket      Boolean @default(false)
+  isWicket      Boolean  @default(false)
   wicketType    String?
   wicketTakerId String?
-  extraType     String? // "wd", "nb", "lb", "b"
-  extraRuns     Int     @default(0)
+  extraType     String?
+  extraRuns     Int      @default(0)
+  
+  // Added timestamp for sorting
+  createdAt     DateTime @default(now())
 }
 
 model PlayerStat {
-  id        String @id @default(uuid())
-  profile   PlayerProfile @relation(fields: [profileId], references: [id])
-  profileId String
-  matchId   String
-  runs      Int
-  ballsFaced Int
-  wickets   Int
-  oversBowled Float
+  id           String @id @default(uuid())
+  profile      PlayerProfile @relation(fields: [profileId], references: [id])
+  profileId    String
+  matchId      String
+  runs         Int
+  ballsFaced   Int
+  wickets      Int
+  oversBowled  Float
   runsConceded Int
 }
 
@@ -146,9 +150,9 @@ enum TeamRole {
 
 enum MatchStatus {
   UPCOMING
-  TOSS          // Add this
+  TOSS
   ONGOING
-  INNINGS_BREAK // Add this
+  INNINGS_BREAK
   COMPLETED
   ABANDONED
 }
