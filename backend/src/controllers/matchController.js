@@ -41,15 +41,65 @@ const getMatchById = async (req, res) => {
 
 const updateToss = async (req, res) => {
     const { matchId } = req.params;
-    const { tossWinnerId, decision } = req.body;
+    const { tossWinnerId, decision } = req.body; // decision MUST be 'bat' or 'field'
+
     try {
         const match = await prisma.match.findUnique({ where: { id: matchId } });
         if (!match) return res.status(404).json({ message: 'Match not found' });
-        await prisma.match.update({ where: { id: matchId }, data: { tossWinnerId, decision, status: 'ONGOING' } });
-        const updatedMatchState = await prisma.match.findUnique({ where: { id: matchId }, include: { homeTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, awayTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, innings: true } });
+
+        // LOGIC: Determine who bats and bowls based on the toss winner's decision
+        let battingTeamId, bowlingTeamId;
+        
+        // Identify the team that LOST the toss
+        const tossLoserId = tossWinnerId === match.homeTeamId ? match.awayTeamId : match.homeTeamId;
+
+        if (decision === 'bat') {
+            // Winner chose to bat -> Winner is batting, Loser is bowling
+            battingTeamId = tossWinnerId;
+            bowlingTeamId = tossLoserId;
+        } else {
+            // Winner chose to field -> Loser is batting, Winner is bowling
+            battingTeamId = tossLoserId;
+            bowlingTeamId = tossWinnerId;
+        }
+
+        await prisma.$transaction([
+            // 1. Update Match Status and Toss Info
+            prisma.match.update({
+                where: { id: matchId },
+                data: { 
+                    tossWinnerId, 
+                    decision, 
+                    status: 'ONGOING' 
+                }
+            }),
+            // 2. Create the First Innings with the correct teams
+            prisma.innings.create({
+                data: { 
+                    matchId, 
+                    battingTeamId, 
+                    bowlingTeamId 
+                }
+            })
+        ]);
+        
+        // Return full match data so frontend updates immediately
+        const updatedMatchState = await prisma.match.findUnique({ 
+            where: { id: matchId }, 
+            include: { 
+                homeTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, 
+                awayTeam: { include: { members: { include: { user: { select: {id:true, username:true}}}}}}, 
+                innings: true 
+            } 
+        });
+
         getIO().to(matchId).emit('scoreUpdated', updatedMatchState);
         res.status(200).json(updatedMatchState);
-    } catch (error) { console.error('Update Toss Error:', error); res.status(500).json({ message: 'Server failed to update toss.' }); }
+
+    } catch (error) {
+        console.error('Update Toss Error:', error);
+        res.status(500).json({ message: 'Server failed to update toss.' });
+    }
 };
 
 // Helper to update Player Stats (Persistent Records)
