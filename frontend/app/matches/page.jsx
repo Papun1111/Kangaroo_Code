@@ -46,104 +46,128 @@ export default function MatchesPage() {
     };
 
     if (loading) {
-        return <div className="flex justify-center items-center h-96"><Spinner /></div>;
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-black">
+                <Spinner />
+            </div>
+        );
     }
 
     return (
-        <motion.div 
-            className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
-            initial="hidden" 
-            animate="visible" 
-            variants={containerVariants}
-        >
+        <div className="min-h-screen bg-black relative overflow-hidden">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
+
             <motion.div 
-                variants={itemVariants}
-                className="mb-10 text-center md:text-left"
-            >
-                <h1 className="text-4xl md:text-5xl font-extrabold text-gray-100 tracking-tight">
-                    Match <span className="text-emerald-600">Center</span>
-                </h1>
-                <p className="text-lg text-white mt-3 max-w-2xl">
-                    Follow the action live. View upcoming fixtures, ongoing battles, and results from completed matches.
-                </p>
-            </motion.div>
-            
-            <motion.div 
-                className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" 
+                className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12"
+                initial="hidden" 
+                animate="visible" 
                 variants={containerVariants}
             >
-                {matches.length > 0 ? (
-                    matches.map(match => (
-                        <motion.div key={match.id} variants={itemVariants} layout>
-                            <Link href={`/matches/${match.id}`} >
-                                <motion.div
-                                    className="group block h-full bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-emerald-500 transition-all duration-300 overflow-hidden relative"
-                                    whileHover={{ y: -5 }}
-                                    whileTap={{ scale: 0.98 }}
-                                >
-                                    {/* Decorative top bar */}
-                                    <div className={`h-2 w-full ${
-                                        match.status === 'ONGOING' ? 'bg-red-500' : 
-                                        match.status === 'COMPLETED' ? 'bg-emerald-500' : 
-                                        'bg-slate-300'
-                                    }`} />
+                {/* Header Section */}
+                <motion.div 
+                    variants={itemVariants}
+                    className="mb-12 border-b border-white/10 pb-8"
+                >
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="h-1.5 w-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]"></span>
+                        <span className="text-xs font-mono text-red-500 uppercase tracking-widest">Live Feed</span>
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase leading-[0.9]">
+                        Match <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-600">Center</span>
+                    </h1>
+                    <p className="text-gray-400 mt-4 max-w-2xl text-lg font-light">
+                        Monitor live telemetry, upcoming fixtures, and historical battle data from the arena.
+                    </p>
+                </motion.div>
+                
+                <motion.div 
+                    className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" 
+                    variants={containerVariants}
+                >
+                    {matches.length > 0 ? (
+                        matches.map(match => (
+                            <motion.div key={match.id} variants={itemVariants} layout>
+                                <Link href={`/matches/${match.id}`} >
+                                    <motion.div
+                                        className="group block h-full bg-[#0a0a0a] rounded-[2rem] border border-white/10 hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] transition-all duration-300 overflow-hidden relative cursor-pointer"
+                                        whileHover={{ y: -5 }}
+                                        whileTap={{ scale: 0.98 }}
+                                    >
+                                        {/* Status Line Indicator */}
+                                        <div className={`absolute top-0 left-0 w-full h-1 ${
+                                            match.status === 'ONGOING' ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 
+                                            match.status === 'COMPLETED' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 
+                                            'bg-gray-700'
+                                        }`} />
 
-                                    <div className="p-6 flex flex-col h-full justify-between">
-                                        <div>
-                                            <div className="flex justify-between items-start mb-4">
-                                                <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full ${
-                                                    match.status === 'ONGOING' ? 'bg-red-100 text-red-700 animate-pulse' : 
-                                                    match.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' : 
-                                                    'bg-slate-100 text-slate-600'
+                                        <div className="p-6 md:p-8 flex flex-col h-full justify-between relative z-10">
+                                            {/* Top Row: Status & Venue */}
+                                            <div className="flex justify-between items-start mb-8">
+                                                <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full border ${
+                                                    match.status === 'ONGOING' ? 'bg-red-500/10 text-red-500 border-red-500/20 animate-pulse' : 
+                                                    match.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                                                    'bg-white/5 text-gray-400 border-white/10'
                                                 }`}>
-                                                    {match.status === 'ONGOING' ? '● Live' : match.status}
+                                                    {match.status === 'ONGOING' ? '● LIVE NOW' : match.status}
                                                 </span>
-                                                <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                                                <span className="text-xs font-mono text-gray-500 uppercase truncate max-w-[120px]">
                                                     {match.venue}
                                                 </span>
                                             </div>
 
-                                            <div className="space-y-4 mb-6">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
-                                                        {match.homeTeam.name}
-                                                    </h3>
-                                                    <span className="text-sm font-bold text-slate-400">VS</span>
-                                                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors text-right">
-                                                        {match.awayTeam.name}
-                                                    </h3>
+                                            {/* Teams VS */}
+                                            <div className="mb-8">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div className="flex flex-col">
+                                                        <h3 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight">
+                                                            {match.homeTeam.name}
+                                                        </h3>
+                                                        <span className="text-[10px] text-gray-600 font-mono uppercase">Home</span>
+                                                    </div>
+                                                    
+                                                    <div className="text-gray-600 font-black text-xl italic opacity-50">VS</div>
+
+                                                    <div className="flex flex-col items-end text-right">
+                                                        <h3 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight">
+                                                            {match.awayTeam.name}
+                                                        </h3>
+                                                        <span className="text-[10px] text-gray-600 font-mono uppercase">Away</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
-                                            <div className="flex items-center text-slate-500 text-sm">
-                                                <svg className="w-4 h-4 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                                {format(new Date(match.matchDate), 'MMM d, yyyy')}
+                                            {/* Footer: Date & CTA */}
+                                            <div className="pt-6 border-t border-white/5 flex justify-between items-center mt-auto">
+                                                <div className="flex items-center text-gray-500 text-xs font-mono">
+                                                    <svg className="w-4 h-4 mr-2 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                                    {format(new Date(match.matchDate), 'MMM d, yyyy')}
+                                                </div>
+                                                <span className="text-white text-xs font-bold group-hover:text-emerald-400 group-hover:translate-x-1 transition-all flex items-center uppercase tracking-wide">
+                                                    Analyze Data
+                                                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                                                </span>
                                             </div>
-                                            <span className="text-emerald-600 font-semibold text-sm group-hover:translate-x-1 transition-transform flex items-center">
-                                                View Details 
-                                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                                            </span>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            </Link>
+                                    </motion.div>
+                                </Link>
+                            </motion.div>
+                        ))
+                    ) : (
+                        <motion.div 
+                            variants={itemVariants} 
+                            className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-[2rem] bg-white/5"
+                        >
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4">
+                                <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-white uppercase tracking-tight">No Matches Scheduled</h3>
+                            <p className="text-gray-500 mt-2 font-mono text-sm">Arena is currently inactive. Check back later.</p>
                         </motion.div>
-                    ))
-                ) : (
-                    <motion.div 
-                        variants={itemVariants} 
-                        className="col-span-full flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-dashed border-slate-300"
-                    >
-                        <div className="bg-slate-50 p-4 rounded-full mb-4">
-                            <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900">No matches scheduled</h3>
-                        <p className="text-slate-500 mt-2">Check back later for upcoming fixtures.</p>
-                    </motion.div>
-                )}
+                    )}
+                </motion.div>
             </motion.div>
-        </motion.div>
+        </div>
     );
 }

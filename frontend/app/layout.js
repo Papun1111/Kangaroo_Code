@@ -23,12 +23,12 @@ export default function RootLayout({ children }) {
        <GoogleWrapper> 
           <AuthProvider>
             <SocketProvider>
-              <div className="min-h-screen bg-[#3c3c3c]">
+             
                 <Navbar />
-                <main className="container mx-auto px-4 py-8">
+                <main className="">
                   {children}
                 </main>
-              </div>
+          
             </SocketProvider>
           </AuthProvider>
         </GoogleWrapper>
