@@ -1,11 +1,16 @@
 import { Inter } from "next/font/google";
+import localFont from 'next/font/local';
 import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import Navbar from "./components/layout/Navbar";
 import { SocketProvider } from "./contexts/SocketContext";
 import GoogleWrapper from "./components/auth/GoogleWrapper";
-const inter = Inter({ subsets: ["latin"] });
-
+const greenEnergy = localFont({
+  src: './Green_Energy.ttf',
+  display: 'swap',
+  weight: '700',
+style: 'normal'
+})
 export const metadata = {
   title: "Kangaroo Code",
   description: "Host and analyze cricket matches with live scoring.",
@@ -15,17 +20,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" />
-<link href="https://fonts.googleapis.com/css2?family=Agbalumo&display=swap" rel="stylesheet"></link>
+
       </head>
-      <body className={inter.className}>
+      <body className={greenEnergy.className}>
        <GoogleWrapper> 
           <AuthProvider>
             <SocketProvider>
              
                 <Navbar />
-                <main className="">
+                <main className={greenEnergy.className}>
                   {children}
                 </main>
           
@@ -36,3 +39,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
