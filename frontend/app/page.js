@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import FaultyTerminal from './components/ui/FaultyTerminal';
-
+import Image from 'next/image';
+import virat from "@/public/Virat.jpg"
 // --- 1. PRELOADER COMPONENT (Matches Reference Video's Text Fill) ---
+import starc from "@/public/starc.jpg"
+import msd from "@/public/msd.jpg"
 const Preloader = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
 
@@ -200,7 +203,7 @@ export default function HomePage() {
 
                 {/* Right side visual (Abstract Field) */}
                 <div className="h-80 md:h-[500px] bg-emerald-900/20 rounded-3xl border border-white/5 relative overflow-hidden group">
-                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+                   <Image src={virat} objectFit='full' alt='Kohli'/>
                    <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-32 h-32 rounded-full border-2 border-emerald-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-700">
                         <div className="w-20 h-20 rounded-full bg-emerald-500 blur-2xl opacity-20" />
@@ -227,8 +230,8 @@ export default function HomePage() {
                          but to uncover the hidden potential in every delivery.
                      </p>
                      <div className="grid grid-cols-2 gap-4 mt-16">
-                         <div className="aspect-video bg-white/5 rounded-lg hover:bg-white/10 transition-colors" />
-                         <div className="aspect-video bg-white/5 rounded-lg hover:bg-white/10 transition-colors" />
+                         <Image src={starc} objectFit='full'  alt='mitchel starc'/>
+                         <Image src={msd} alt='msd' objectFit='full' />
                      </div>
                  </div>
              </div>

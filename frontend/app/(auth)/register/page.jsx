@@ -55,7 +55,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-[calc(100vh-200px)] px-4 bg-black relative">
+        <div className="flex justify-center items-center h-screen px-4 bg-black relative">
             {/* Ambient Background Glow matching the theme */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-full max-h-lg bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none" />
 

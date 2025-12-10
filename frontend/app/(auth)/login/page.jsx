@@ -56,9 +56,9 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex justify-center items-center min-h-[calc(100vh-200px)] px-4 bg-black relative">
+        <div className="flex justify-center items-center h-screen px-4 bg-black relative">
             {/* Ambient Background Glow matching the Home Page */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg h-full max-h-lg bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none" />
+        
 
             <motion.div
                 className="w-full max-w-md bg-[#0a0a0a] backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-10 border border-white/10 relative z-10"
@@ -122,14 +122,12 @@ export default function LoginPage() {
                     <motion.div variants={itemVariants}>
                         <div className="flex justify-between items-center mb-2 ml-1">
                             <label className="block text-gray-400 text-xs font-mono uppercase tracking-widest" htmlFor="password">Password</label>
-                            <Link href="/forgot-password" className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors">
-                                Forgot?
-                            </Link>
+
                         </div>
                         <input
                             type="password"
                             id="password"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-300"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all duration-300"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="••••••••"

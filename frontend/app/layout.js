@@ -20,7 +20,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Gochi+Hand&display=swap" rel="stylesheet"/>
       </head>
       <body className={greenEnergy.className}>
        <GoogleWrapper> 

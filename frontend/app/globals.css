@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
-
+p{
+ font-family: "Caveat", cursive;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+a{
+ font-family: "Gochi Hand", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
 
 :root {
   --background: #ffffff;
