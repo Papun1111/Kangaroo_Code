@@ -12,35 +12,54 @@ export default function CreateMatchPage() {
     const { isAuthenticated, loading: authLoading } = useAuth();
     const router = useRouter();
 
+    // This effect protects the route. If the user is not logged in,
+    // they will be redirected to the login page.
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
             router.push('/login');
         }
     }, [isAuthenticated, authLoading, router]);
 
+    // Display a spinner while checking authentication status
     if (authLoading) {
         return (
-            <div className="flex justify-center items-center h-64">
+            <div className="flex justify-center items-center min-h-[60vh]">
                 <Spinner />
             </div>
         );
     }
 
+    // If authenticated, display the form. Otherwise, show a themed message.
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="mx-auto">
             {isAuthenticated ? (
                 <CreateMatchForm />
             ) : (
                 <motion.div 
-                    className="card text-center max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 border border-slate-200"
+                    className="card text-center max-w-md mx-auto bg-zinc-900 rounded-xl shadow-2xl p-10 border border-zinc-800 relative overflow-hidden"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h2 className="text-2xl font-bold mb-4 text-black">Access Denied</h2>
-                    <p className="text-slate-600">You must be logged in to host a new match.</p>
-                    <Link href="/login" className="btn bg-emerald-500 text-white mt-6 inline-block px-6 py-2 rounded-full font-bold hover:bg-emerald-600 transition-colors duration-300">
-                        Login Here
+                    {/* Decorative Green Glow effect */}
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50"></div>
+                    
+                    <h2 className="text-3xl font-extrabold mb-4 text-white tracking-wide">
+                        ACCESS <span className="text-red-500">DENIED</span>
+                    </h2>
+                    
+                    <p className="text-zinc-400 text-lg mb-8">
+                        You must be logged in to host a match in the <span className="text-green-500 font-bold">Arena</span>.
+                    </p>
+                    
+                    <Link href="/login" className="inline-block w-full">
+                        <motion.button
+                            className="w-full bg-green-600 text-black font-bold uppercase py-3 px-6 rounded hover:bg-green-500 transition-colors duration-300 shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            Login to Continue
+                        </motion.button>
                     </Link>
                 </motion.div>
             )}

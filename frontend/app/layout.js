@@ -24,13 +24,13 @@ export default function RootLayout({ children }) {
 <link rel="preconnect" href="https://fonts.gstatic.com" />
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Gochi+Hand&display=swap" rel="stylesheet"/>
       </head>
-      <body className={greenEnergy.className}>
+      <body >
        <GoogleWrapper> 
           <AuthProvider>
             <SocketProvider>
              
                 <Navbar />
-                <main className={greenEnergy.className}>
+                <main >
                   {children}
                 </main>
           

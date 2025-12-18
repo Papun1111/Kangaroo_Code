@@ -72,7 +72,6 @@ const LiveScorecard = ({ match }) => {
         return { batting, bowling };
     };
 
-    // Replaces html2canvas/jspdf with native browser print
     const handlePrint = () => {
         window.print();
     };
@@ -81,13 +80,13 @@ const LiveScorecard = ({ match }) => {
         if (!innings) {
             return (
                 <motion.div 
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center"
+                    className="bg-[#0a0a0a] rounded-2xl shadow-lg border border-white/10 p-8 text-center"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h2 className="text-xl font-bold text-slate-400 uppercase tracking-wide mb-2">Innings {inningsNumber}</h2>
-                    <p className="text-slate-500 text-lg">Yet to bat</p>
+                    <h2 className="text-xl font-bold text-zinc-400 uppercase tracking-wide mb-2">Innings {inningsNumber}</h2>
+                    <p className="text-zinc-300 text-lg">Yet to bat</p>
                 </motion.div>
             );
         }
@@ -98,26 +97,25 @@ const LiveScorecard = ({ match }) => {
 
         return (
             <motion.div 
-                // Added print specific classes to remove shadows and handle page breaks
-                className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8 last:mb-0 print:shadow-none print:border-2 print:break-inside-avoid"
+                className="bg-[#0a0a0a] rounded-2xl shadow-xl border border-white/10 overflow-hidden mb-8 last:mb-0 print:shadow-none print:border-2 print:break-inside-avoid"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: inningsNumber * 0.1 }}
             >
                 {/* Header Section */}
-                <div className="bg-slate-50/50 p-6 sm:p-8 border-b border-slate-100 print:bg-gray-50">
+                <div className="bg-zinc-900/50 p-6 sm:p-8 border-b border-white/5 print:bg-gray-50">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                         <div>
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Innings {inningsNumber}</span>
-                            <h2 className="text-3xl font-extrabold text-slate-900 mt-1">{battingTeamName}</h2>
+                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1">Innings {inningsNumber}</span>
+                            <h2 className="text-3xl font-black text-white uppercase tracking-tighter print:text-black">{battingTeamName}</h2>
                         </div>
                         <div className="flex flex-col items-end">
                             <div className="flex items-baseline gap-1">
-                                <span className="text-5xl font-black text-emerald-600 print:text-black">{innings.score}</span>
-                                <span className="text-3xl font-bold text-slate-400">/{innings.wickets}</span>
+                                <span className="text-5xl font-black text-emerald-400 print:text-black">{innings.score}</span>
+                                <span className="text-3xl font-bold text-zinc-300">/{innings.wickets}</span>
                             </div>
-                            <div className="text-sm font-medium text-slate-500 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-sm mt-2 print:border-gray-300">
-                                Overs: <span className="text-slate-900 font-bold">{currentOvers}</span>
+                            <div className="text-sm font-medium text-zinc-300 bg-white/5 px-4 py-1.5 rounded-full border border-white/10 mt-3 print:border-gray-300 print:text-black print:bg-white">
+                                Overs: <span className="text-white font-bold print:text-black">{currentOvers}</span>
                             </div>
                         </div>
                     </div>
@@ -125,13 +123,13 @@ const LiveScorecard = ({ match }) => {
 
                 {/* Batting Table */}
                 <div className="p-6 sm:p-8">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
-                        <span className="w-1 h-4 bg-emerald-500 rounded-full mr-2 print:bg-black"></span>
+                    <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4 flex items-center print:text-black">
+                        <span className="w-1.5 h-4 bg-emerald-500 rounded-full mr-3 print:bg-black"></span>
                         Batting Scorecard
                     </h3>
-                    <div className="overflow-x-auto rounded-xl border border-slate-100 print:border-gray-300">
+                    <div className="overflow-x-auto rounded-xl border border-white/5 print:border-gray-300">
                         <table className="w-full text-left">
-                           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold tracking-wide print:bg-gray-100">
+                           <thead className="bg-zinc-900 text-xs uppercase text-zinc-400 font-semibold tracking-wide print:bg-gray-100 print:text-gray-700">
                                 <tr>
                                     <th className="p-4">Batsman</th>
                                     <th className="p-4 text-right">Runs</th>
@@ -139,16 +137,16 @@ const LiveScorecard = ({ match }) => {
                                     <th className="p-4 text-right">SR</th>
                                 </tr>
                            </thead>
-                           <tbody className="divide-y divide-slate-100 text-sm text-slate-700 print:divide-gray-200">
+                           <tbody className="divide-y divide-white/5 text-sm text-zinc-200 print:divide-gray-200 print:text-black">
                                 {batting.map(b => (
-                                    <tr key={b.playerId} className="hover:bg-slate-50/80 transition-colors">
-                                        <td className="p-4 font-bold text-slate-900">
+                                    <tr key={b.playerId} className="hover:bg-white/5 transition-colors">
+                                        <td className="p-4 font-bold text-white print:text-black">
                                             {getPlayerUsername(b.playerId)} 
-                                            {!b.isOut && <span className="ml-2 text-emerald-500 text-xs align-top print:text-black">●</span>}
+                                            {!b.isOut && <span className="ml-2 text-emerald-400 text-xs align-top print:text-black">●</span>}
                                         </td>
-                                        <td className="p-4 text-right font-mono font-bold text-slate-900">{b.runs}</td>
-                                        <td className="p-4 text-right font-mono text-slate-500">{b.balls}</td>
-                                        <td className="p-4 text-right font-mono text-slate-500">
+                                        <td className="p-4 text-right font-mono font-bold text-emerald-400 print:text-black">{b.runs}</td>
+                                        <td className="p-4 text-right font-mono text-zinc-300">{b.balls}</td>
+                                        <td className="p-4 text-right font-mono text-zinc-300">
                                             {b.balls > 0 ? ((b.runs / b.balls) * 100).toFixed(1) : '0.0'}
                                         </td>
                                     </tr>
@@ -160,13 +158,13 @@ const LiveScorecard = ({ match }) => {
 
                 {/* Bowling Table */}
                 <div className="px-6 sm:px-8 pb-8">
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center">
-                        <span className="w-1 h-4 bg-blue-500 rounded-full mr-2 print:bg-black"></span>
+                    <h3 className="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4 flex items-center print:text-black">
+                        <span className="w-1.5 h-4 bg-blue-500 rounded-full mr-3 print:bg-black"></span>
                         Bowling Figures
                     </h3>
-                    <div className="overflow-x-auto rounded-xl border border-slate-100 print:border-gray-300">
+                    <div className="overflow-x-auto rounded-xl border border-white/5 print:border-gray-300">
                         <table className="w-full text-left">
-                           <thead className="bg-slate-50 text-xs uppercase text-slate-500 font-semibold tracking-wide print:bg-gray-100">
+                           <thead className="bg-zinc-900 text-xs uppercase text-zinc-400 font-semibold tracking-wide print:bg-gray-100 print:text-gray-700">
                                 <tr>
                                     <th className="p-4">Bowler</th>
                                     <th className="p-4 text-right">Overs</th>
@@ -175,17 +173,17 @@ const LiveScorecard = ({ match }) => {
                                     <th className="p-4 text-right">Econ</th>
                                 </tr>
                            </thead>
-                           <tbody className="divide-y divide-slate-100 text-sm text-slate-700 print:divide-gray-200">
+                           <tbody className="divide-y divide-white/5 text-sm text-zinc-200 print:divide-gray-200 print:text-black">
                                 {bowling.map(b => {
                                     const overs = `${Math.floor(b.balls / 6)}.${b.balls % 6}`;
                                     const economy = b.balls > 0 ? (b.runs / (b.balls / 6)).toFixed(2) : '0.00';
                                     return (
-                                        <tr key={b.playerId} className="hover:bg-slate-50/80 transition-colors">
-                                            <td className="p-4 font-medium text-slate-900">{getPlayerUsername(b.playerId)}</td>
-                                            <td className="p-4 text-right font-mono text-slate-600">{overs}</td>
-                                            <td className="p-4 text-right font-mono text-slate-600">{b.runs}</td>
-                                            <td className="p-4 text-right font-mono font-bold text-emerald-600 print:text-black">{b.wickets}</td>
-                                            <td className="p-4 text-right font-mono text-slate-500">{economy}</td>
+                                        <tr key={b.playerId} className="hover:bg-white/5 transition-colors">
+                                            <td className="p-4 font-medium text-white print:text-black">{getPlayerUsername(b.playerId)}</td>
+                                            <td className="p-4 text-right font-mono text-zinc-300">{overs}</td>
+                                            <td className="p-4 text-right font-mono text-zinc-300">{b.runs}</td>
+                                            <td className="p-4 text-right font-mono font-bold text-emerald-400 print:text-black">{b.wickets}</td>
+                                            <td className="p-4 text-right font-mono text-zinc-300">{economy}</td>
                                         </tr>
                                     );
                                 })}
@@ -217,20 +215,27 @@ const LiveScorecard = ({ match }) => {
                     .no-print {
                         display: none !important;
                     }
-                    /* Ensure colors print correctly */
+                    /* Force background colors for print */
                     * {
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }
+                    /* Invert dark theme for print readability */
+                    .bg-\[\#0a0a0a\] { background-color: white !important; color: black !important; border: 1px solid #ddd !important; }
+                    .text-white { color: black !important; }
+                    .text-emerald-500, .text-emerald-400 { color: black !important; font-weight: bold !important; }
+                    .text-zinc-500, .text-zinc-400, .text-zinc-300, .text-zinc-200 { color: #333 !important; }
+                    .bg-zinc-900 { background-color: #f3f4f6 !important; }
+                    .border-white\/10, .border-white\/5 { border-color: #ddd !important; }
                 }
             `}</style>
 
             <div className="flex justify-end mb-4 no-print">
                 <button 
                     onClick={handlePrint}
-                    className="flex items-center gap-2 bg-white text-slate-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm border border-slate-200 hover:bg-slate-50 hover:text-emerald-600 transition-all duration-200"
+                    className="flex items-center gap-2 bg-zinc-900 text-zinc-300 px-4 py-2 rounded-lg font-bold text-sm shadow-lg border border-white/10 hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-all duration-300 group"
                 >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-4 h-4 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                     </svg>
                     Print / Save PDF
@@ -238,7 +243,7 @@ const LiveScorecard = ({ match }) => {
             </div>
             
             {/* ID for capturing print area */}
-            <div id="scorecard-container" className="bg-slate-100 p-4 rounded-xl print:bg-white print:p-0"> 
+            <div id="scorecard-container"> 
                 {renderInnings(match.innings[0], 1)}
                 {match.status !== 'UPCOMING' && renderInnings(match.innings[1], 2)}
             </div>

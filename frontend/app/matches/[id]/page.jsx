@@ -90,7 +90,7 @@ export default function MatchDetailPage() {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div className="text-center mb-8">
+            <div className="text-center mt-20">
                 <h1 className="text-4xl font-bold text-gray-200">{match.homeTeam.name} vs {match.awayTeam.name}</h1>
                 <p className="text-green-600 mt-1">{match.venue}</p>
                  <span className={`mt-2 inline-block px-3 py-1 text-sm font-semibold rounded-full ${

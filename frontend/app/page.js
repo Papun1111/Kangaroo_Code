@@ -29,7 +29,7 @@ const Preloader = ({ onComplete }) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center "
       exit={{ y: "-100%", transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } }}
     >
       <div className="relative p-4 text-center">
