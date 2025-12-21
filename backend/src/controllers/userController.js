@@ -30,15 +30,22 @@ const getUserProfile = async (req, res) => {
   try {
     const userProfile = await prisma.user.findUnique({
       where: { id: req.params.id },
-      include: {
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        createdAt: true,
         profile: {
           include: {
-            stats: true,
+            stats: true, // Fetch all match-level stats
           },
         },
         teamMemberships: {
           include: {
-            team: true,
+            team: {
+              select: { id: true, name: true }
+            },
           },
         },
       },
@@ -47,13 +54,37 @@ const getUserProfile = async (req, res) => {
     if (!userProfile) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    // Don't send the password back
-    const { password, ...profileData } = userProfile;
 
-    res.json(profileData);
+    // --- DYNAMIC STATS CALCULATION ---
+    // Calculate totals on the fly to ensure they are always accurate
+    if (userProfile.profile && userProfile.profile.stats) {
+        const stats = userProfile.profile.stats;
+        
+        const matchesPlayed = stats.length;
+        const totalRuns = stats.reduce((sum, stat) => sum + (stat.runs || 0), 0);
+        const totalBallsFaced = stats.reduce((sum, stat) => sum + (stat.ballsFaced || 0), 0);
+        const totalWickets = stats.reduce((sum, stat) => sum + (stat.wickets || 0), 0);
+        
+        // Update the profile object we are about to send back
+        userProfile.profile.matchesPlayed = matchesPlayed;
+        userProfile.profile.wicketsTaken = totalWickets;
+        
+        // Batting Average: Total Runs / Matches Played (Simplified)
+        userProfile.profile.battingAverage = matchesPlayed > 0 ? (totalRuns / matchesPlayed) : 0;
+
+        // Strike Rate: (Total Runs / Total Balls Faced) * 100
+        userProfile.profile.strikeRate = totalBallsFaced > 0 ? (totalRuns / totalBallsFaced) * 100 : 0;
+    }
+    // ---------------------------------
+
+    // SECURITY FIX: Only allow the user to see their own email.
+    if (req.user.id !== userProfile.id) {
+        delete userProfile.email;
+    }
+
+    res.json(userProfile);
   } catch (error) {
-    console.error(error);
+    console.error('Get User Profile Error:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
