@@ -38,6 +38,7 @@ model PlayerProfile {
 model Team {
   id        String   @id @default(uuid())
   name      String   @unique
+  logoUrl   String? 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

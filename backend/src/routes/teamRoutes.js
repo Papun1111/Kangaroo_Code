@@ -7,6 +7,7 @@ const {
   getTeamById,
   addPlayerToTeam,
   removePlayerFromTeam,
+  updateTeamLogo
 } = require('../controllers/teamController');
 const { protect, isCaptain } = require('../middleware/authMiddleware');
 
@@ -23,5 +24,6 @@ router.route('/:id/players')
 
 router.route('/:id/players/:playerId')
     .delete(protect, isCaptain, removePlayerFromTeam);
-
+router.route('/:id/logo')
+    .put(protect, isCaptain, updateTeamLogo);
 module.exports = router;

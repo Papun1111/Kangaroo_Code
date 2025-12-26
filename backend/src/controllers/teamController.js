@@ -2,11 +2,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-/**
- * @desc    Create a new team, making the creator the captain.
- * @route   POST /api/teams
- * @access  Private
- */
+
 const createTeam = async (req, res) => {
   const { name } = req.body;
   if (!name) {
@@ -180,7 +176,36 @@ const removePlayerFromTeam = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+const updateTeamLogo = async (req, res) => {
+    const { id: teamId } = req.params;
+    const { logoUrl } = req.body; // Receives the Base64 string
 
+    if (!logoUrl) {
+        return res.status(400).json({ message: "No logo data provided" });
+    }
+
+    try {
+        // 1. Verify Captaincy
+        const membership = await prisma.teamMembership.findFirst({
+            where: { teamId: teamId, userId: req.user.id, role: 'CAPTAIN' }
+        });
+
+        if (!membership) {
+            return res.status(403).json({ message: 'Only the team captain can update the logo.' });
+        }
+
+        // 2. Update the team record
+        const updatedTeam = await prisma.team.update({
+            where: { id: teamId },
+            data: { logoUrl },
+        });
+
+        res.json(updatedTeam);
+    } catch (error) {
+        console.error("Update Logo Error:", error);
+        res.status(500).json({ message: 'Failed to update logo' });
+    }
+};
 
 module.exports = {
   createTeam,
@@ -188,4 +213,5 @@ module.exports = {
   getTeamById,
   addPlayerToTeam,
   removePlayerFromTeam,
+  updateTeamLogo
 };
